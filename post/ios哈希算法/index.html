@@ -6,9 +6,9 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>iOS:密码学(哈希算法) - sean</title>
 	<script>(function(d,e){d[e]=d[e].replace("no-js","js");})(document.documentElement,"className");</script>
-	<meta name="description" content="Example article description">
+	<meta name="description" content="iOS 哈希算法">
 		<meta property="og:title" content="iOS:密码学(哈希算法)" />
-<meta property="og:description" content="Example article description" />
+<meta property="og:description" content="iOS 哈希算法" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://sean.vip/post/ios%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95/" />
 <meta property="article:published_time" content="2015-11-15T16:20:26&#43;08:00"/>
@@ -16,12 +16,12 @@
 
 		
 <meta itemprop="name" content="iOS:密码学(哈希算法)">
-<meta itemprop="description" content="Example article description">
+<meta itemprop="description" content="iOS 哈希算法">
 
 
 <meta itemprop="datePublished" content="2015-11-15T16:20:26&#43;08:00" />
 <meta itemprop="dateModified" content="2015-11-15T16:20:26&#43;08:00" />
-<meta itemprop="wordCount" content="645">
+<meta itemprop="wordCount" content="1107">
 
 
 
@@ -29,7 +29,7 @@
 
 		<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="iOS:密码学(哈希算法)"/>
-<meta name="twitter:description" content="Example article description"/>
+<meta name="twitter:description" content="iOS 哈希算法"/>
 
 	<link rel="dns-prefetch" href="//fonts.googleapis.com">
 	<link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -53,6 +53,7 @@
 		<div class="divider"></div>
 	</div>
 </header>
+
 		<div class="wrapper flex">
 			<div class="primary">
 			
@@ -102,6 +103,7 @@
 <li><a href="#hmac加密">HMAC加密</a></li>
 <li><a href="#hmac-时间戳再md5">HMAC+时间戳再MD5</a></li>
 </ul></li>
+<li><a href="#oc的hash封装">OC的Hash封装</a></li>
 <li><a href="#总结">总结</a></li>
 </ul></li>
 </ul></li>
@@ -191,57 +193,63 @@
 
 <p>首先定义常量:</p>
 
-<pre><code class="language-objective-c">static NSString * ServerReceivedAccount;
-static NSString * ServerReceivedPassword;
-</code></pre>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span>ServerReceivedAccount;
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span>ServerReceivedPassword;
+
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>然后模拟注册流程:</p>
 
-<pre><code class="language-objective-c">/**
- * 注册加密处理
- */
-- (void)registerBasedMD5 {
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = password.md5String;
-    /// 发送到服务器接收
-    ServerReceivedAccount = account;
-    ServerReceivedPassword = password;
-    NSLog(@&quot;The account server received is:%@&quot;, ServerReceivedAccount);
-    NSLog(@&quot;The password server received is:%@&quot;, ServerReceivedPassword);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 注册加密处理
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)registerBasedMD5 {
+    <span style="color:#75715e">/// 本地账号密码处理
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> account <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;18918186688&#34;</span>;
+    NSString <span style="color:#f92672">*</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Sean12345678&#34;</span>;
+    password <span style="color:#f92672">=</span> password.md5String;
+    <span style="color:#75715e">/// 发送到服务器接收
+</span><span style="color:#75715e"></span>    ServerReceivedAccount <span style="color:#f92672">=</span> account;
+    ServerReceivedPassword <span style="color:#f92672">=</span> password;
+    NSLog(<span style="color:#e6db74">@&#34;The account server received is:%@&#34;</span>, ServerReceivedAccount);
+    NSLog(<span style="color:#e6db74">@&#34;The password server received is:%@&#34;</span>, ServerReceivedPassword);
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>再模拟登陆:</p>
 
-<pre><code class="language-objective-c">/**
- * 登录加密处理
- */
-- (void)loginBasedMD5 {
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = password.md5String;
-    /// 发送到服务器接收后，服务器做验证
-    if ([account isEqualToString:ServerReceivedAccount] &amp;&amp; [password isEqualToString:ServerReceivedPassword]) {
-        NSLog(@&quot;登陆成功&quot;);
-    } else {
-        NSLog(@&quot;登陆失败&quot;);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 登录加密处理
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)loginBasedMD5 {
+    <span style="color:#75715e">/// 本地账号密码处理
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> account <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;18918186688&#34;</span>;
+    NSString <span style="color:#f92672">*</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Sean12345678&#34;</span>;
+    password <span style="color:#f92672">=</span> password.md5String;
+    <span style="color:#75715e">/// 发送到服务器接收后，服务器做验证
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([account isEqualToString:ServerReceivedAccount] <span style="color:#f92672">&amp;&amp;</span> [password isEqualToString:ServerReceivedPassword]) {
+        NSLog(<span style="color:#e6db74">@&#34;登陆成功&#34;</span>);
+    } <span style="color:#66d9ef">else</span> {
+        NSLog(<span style="color:#e6db74">@&#34;登陆失败&#34;</span>);
     }
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>调用:</p>
 
-<pre><code class="language-objective-c">/**
- * 注册登录流程模拟
- */
-- (void)handleUserAccountPasswordBasedMD5 {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 注册登录流程模拟
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)handleUserAccountPasswordBasedMD5 {
     [self registerBasedMD5];
     [self loginBasedMD5];
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <h4 id="加盐后md5">加盐后MD5</h4>
 
@@ -249,59 +257,63 @@ static NSString * ServerReceivedPassword;
 
 <p>首先定义常量:</p>
 
-<pre><code class="language-objective-c">static NSString * ServerReceivedAccount;
-static NSString * ServerReceivedPassword;
-///盐：盐要足够长，足够复杂.
-static NSString * salt = @&quot;THIBSNNABKDAINDND91i2e9uqENSDDSJNDJNJSDNJ81838jaw92&quot;;
-</code></pre>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> ServerReceivedAccount;
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> ServerReceivedPassword;
+<span style="color:#75715e">///盐：盐要足够长，足够复杂.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> salt <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;THIBSNNABKDAINDND91i2e9uqENSDDSJNDJNJSDNJ81838jaw92&#34;</span>;
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>然后模拟注册流程:</p>
 
-<pre><code class="language-objective-c">/**
- * 注册加密处理
- */
-- (void)registerBasedSaltMD5 {
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = [password stringByAppendingString:salt].md5String;
-    /// 发送到服务器接收
-    ServerReceivedAccount = account;
-    ServerReceivedPassword = password;
-    NSLog(@&quot;The account server received is:%@&quot;, ServerReceivedAccount);
-    NSLog(@&quot;The password server received is:%@&quot;, ServerReceivedPassword);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 注册加密处理
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)registerBasedSaltMD5 {
+    <span style="color:#75715e">/// 本地账号密码处理
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> account <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;18918186688&#34;</span>;
+    NSString <span style="color:#f92672">*</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Sean12345678&#34;</span>;
+    password <span style="color:#f92672">=</span> [password stringByAppendingString:salt].md5String;
+    <span style="color:#75715e">/// 发送到服务器接收
+</span><span style="color:#75715e"></span>    ServerReceivedAccount <span style="color:#f92672">=</span> account;
+    ServerReceivedPassword <span style="color:#f92672">=</span> password;
+    NSLog(<span style="color:#e6db74">@&#34;The account server received is:%@&#34;</span>, ServerReceivedAccount);
+    NSLog(<span style="color:#e6db74">@&#34;The password server received is:%@&#34;</span>, ServerReceivedPassword);
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>再模拟登陆:</p>
 
-<pre><code class="language-objective-c">/**
- * 登录加密处理
- */
-- (void)loginBasedSaltMD5 {
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = [password stringByAppendingString:salt].md5String;
-    /// 发送到服务器接收后，服务器做验证
-    if ([account isEqualToString:ServerReceivedAccount] &amp;&amp; [password isEqualToString:ServerReceivedPassword]) {
-        NSLog(@&quot;登陆成功&quot;);
-    } else {
-        NSLog(@&quot;登陆失败&quot;);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 登录加密处理
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)loginBasedSaltMD5 {
+    <span style="color:#75715e">/// 本地账号密码处理
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> account <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;18918186688&#34;</span>;
+    NSString <span style="color:#f92672">*</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Sean12345678&#34;</span>;
+    password <span style="color:#f92672">=</span> [password stringByAppendingString:salt].md5String;
+    <span style="color:#75715e">/// 发送到服务器接收后，服务器做验证
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([account isEqualToString:ServerReceivedAccount] <span style="color:#f92672">&amp;&amp;</span> [password isEqualToString:ServerReceivedPassword]) {
+        NSLog(<span style="color:#e6db74">@&#34;登陆成功&#34;</span>);
+    } <span style="color:#66d9ef">else</span> {
+        NSLog(<span style="color:#e6db74">@&#34;登陆失败&#34;</span>);
     }
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>调用:</p>
 
-<pre><code class="language-objective-c">/**
- * 注册登录流程模拟
- */
-- (void)handleUserAccountPasswordBasedSaltMD5 {   
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 注册登录流程模拟
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)handleUserAccountPasswordBasedSaltMD5 {   
     [self registerBasedSaltMD5];
     [self loginBasedSaltMD5];
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <h4 id="hmac加密">HMAC加密</h4>
 
@@ -309,68 +321,72 @@ static NSString * salt = @&quot;THIBSNNABKDAINDND91i2e9uqENSDDSJNDJNJSDNJ81838ja
 
 <p>首先定义常量:</p>
 
-<pre><code class="language-objective-c">#define KEY_ACCOUNTKEY @&quot;KEY_ACCOUNTKEY&quot;
-#define BUNDLEID [[NSBundle mainBundle] bundleIdentifier]
-static NSString * ServerReceivedAccount;
-static NSString * ServerReceivedPassword;
-</code></pre>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#define KEY_ACCOUNTKEY @&#34;KEY_ACCOUNTKEY&#34;
+</span><span style="color:#75715e">#define BUNDLEID [[NSBundle mainBundle] bundleIdentifier]
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> ServerReceivedAccount;
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> ServerReceivedPassword;
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>然后模拟注册流程:</p>
 
-<pre><code class="language-objective-c">/**
- * 注册加密处理
- */
-- (void)registerBasedHMAC {
-    /// 从服务器获取Key并保存到keychain
-    NSString * key = @&quot;useraccount281818&quot;;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 注册加密处理
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)registerBasedHMAC {
+    <span style="color:#75715e">/// 从服务器获取Key并保存到keychain
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> key <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;useraccount281818&#34;</span>;
     [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = [password hmacMD5StringWithKey:key];
+    <span style="color:#75715e">/// 本地账号密码处理
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> account <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;18918186688&#34;</span>;
+    NSString <span style="color:#f92672">*</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Sean12345678&#34;</span>;
+    password <span style="color:#f92672">=</span> [password hmacMD5StringWithKey:key];
     
-    /// 发送到服务器接收
-    ServerReceivedAccount = account;
-    ServerReceivedPassword = password;
-    NSLog(@&quot;The account server received is:%@&quot;, ServerReceivedAccount);
-    NSLog(@&quot;The password server received is:%@&quot;, ServerReceivedPassword);
+    <span style="color:#75715e">/// 发送到服务器接收
+</span><span style="color:#75715e"></span>    ServerReceivedAccount <span style="color:#f92672">=</span> account;
+    ServerReceivedPassword <span style="color:#f92672">=</span> password;
+    NSLog(<span style="color:#e6db74">@&#34;The account server received is:%@&#34;</span>, ServerReceivedAccount);
+    NSLog(<span style="color:#e6db74">@&#34;The password server received is:%@&#34;</span>, ServerReceivedPassword);
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>再模拟登陆:</p>
 
-<pre><code class="language-objective-c">/**
- * 登录加密处理
- */
-- (void)loginBasedHMAC {
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    NSString * key = [SAMKeychain passwordForService:BUNDLEID account:KEY_ACCOUNTKEY];
-    if (!key) { // 从服务器获取Key并保存到keychain
-        key = @&quot;useraccount281818&quot;;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 登录加密处理
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)loginBasedHMAC {
+    <span style="color:#75715e">/// 本地账号密码处理
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> account <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;18918186688&#34;</span>;
+    NSString <span style="color:#f92672">*</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Sean12345678&#34;</span>;
+    NSString <span style="color:#f92672">*</span> key <span style="color:#f92672">=</span> [SAMKeychain passwordForService:BUNDLEID account:KEY_ACCOUNTKEY];
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>key) { <span style="color:#75715e">// 从服务器获取Key并保存到keychain
+</span><span style="color:#75715e"></span>        key <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;useraccount281818&#34;</span>;
         [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
     }
-    password = [password hmacMD5StringWithKey:key];
-    /// 发送到服务器接收后，服务器做验证
-    if ([account isEqualToString:ServerReceivedAccount] &amp;&amp; [password isEqualToString:ServerReceivedPassword]) {
-        NSLog(@&quot;登陆成功&quot;);
-    } else {
-        NSLog(@&quot;登陆失败&quot;);
+    password <span style="color:#f92672">=</span> [password hmacMD5StringWithKey:key];
+    <span style="color:#75715e">/// 发送到服务器接收后，服务器做验证
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([account isEqualToString:ServerReceivedAccount] <span style="color:#f92672">&amp;&amp;</span> [password isEqualToString:ServerReceivedPassword]) {
+        NSLog(<span style="color:#e6db74">@&#34;登陆成功&#34;</span>);
+    } <span style="color:#66d9ef">else</span> {
+        NSLog(<span style="color:#e6db74">@&#34;登陆失败&#34;</span>);
     }
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>调用:</p>
 
-<pre><code class="language-objective-c">/**
- * 注册登录流程模拟
- */
-- (void)handleUserAccountPasswordBasedHMAC {    
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 注册登录流程模拟
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)handleUserAccountPasswordBasedHMAC {    
     [self registerBasedHMAC];
     [self loginBasedHMAC];
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <h4 id="hmac-时间戳再md5">HMAC+时间戳再MD5</h4>
 
@@ -379,76 +395,290 @@ static NSString * ServerReceivedPassword;
 
 <p>首先定义常量:</p>
 
-<pre><code class="language-objective-c">static NSString * ServerReceivedAccount;
-static NSString * ServerReceivedPassword;
-</code></pre>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> ServerReceivedAccount;
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> ServerReceivedPassword;
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>然后模拟注册流程:</p>
 
-<pre><code class="language-objective-c">/**
- * 注册加密处理:（HMAC加密+时间戳）再MD5加密(注册时发送给服务器的密码是不添加时间戳和再MD5处理的)
- */
-- (void)registerBasedHMACTimeStamp {
-    /// 从服务器获取Key并保存到keychain
-    NSString * key = @&quot;useraccount281818&quot;;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 注册加密处理:（HMAC加密+时间戳）再MD5加密(注册时发送给服务器的密码是不添加时间戳和再MD5处理的)
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)registerBasedHMACTimeStamp {
+    <span style="color:#75715e">/// 从服务器获取Key并保存到keychain
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> key <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;useraccount281818&#34;</span>;
     [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = [password hmacMD5StringWithKey:key];
-    /// 发送到服务器接收
-    ServerReceivedAccount = account;
-    ServerReceivedPassword = password;
-    NSLog(@&quot;The account server received is:%@&quot;, ServerReceivedAccount);
-    NSLog(@&quot;The password server received is:%@&quot;, ServerReceivedPassword);
+    <span style="color:#75715e">/// 本地账号密码处理
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> account <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;18918186688&#34;</span>;
+    NSString <span style="color:#f92672">*</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Sean12345678&#34;</span>;
+    password <span style="color:#f92672">=</span> [password hmacMD5StringWithKey:key];
+    <span style="color:#75715e">/// 发送到服务器接收
+</span><span style="color:#75715e"></span>    ServerReceivedAccount <span style="color:#f92672">=</span> account;
+    ServerReceivedPassword <span style="color:#f92672">=</span> password;
+    NSLog(<span style="color:#e6db74">@&#34;The account server received is:%@&#34;</span>, ServerReceivedAccount);
+    NSLog(<span style="color:#e6db74">@&#34;The password server received is:%@&#34;</span>, ServerReceivedPassword);
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>再模拟登陆:</p>
 
-<pre><code class="language-objective-c">/**
- * 登录加密处理:（HMAC加密+时间戳）再MD5加密
- */
-- (void)loginBasedHMACTimeStamp {
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    NSString * key = [SAMKeychain passwordForService:BUNDLEID account:KEY_ACCOUNTKEY];
-    if (!key) { // 从服务器获取Key并保存到keychain
-        key = @&quot;useraccount281818&quot;;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 登录加密处理:（HMAC加密+时间戳）再MD5加密
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)loginBasedHMACTimeStamp {
+    <span style="color:#75715e">/// 本地账号密码处理
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> account <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;18918186688&#34;</span>;
+    NSString <span style="color:#f92672">*</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Sean12345678&#34;</span>;
+    NSString <span style="color:#f92672">*</span> key <span style="color:#f92672">=</span> [SAMKeychain passwordForService:BUNDLEID account:KEY_ACCOUNTKEY];
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>key) { <span style="color:#75715e">// 从服务器获取Key并保存到keychain
+</span><span style="color:#75715e"></span>        key <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;useraccount281818&#34;</span>;
         [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
     }
-    /// 加时间戳
-    NSDateFormatter * dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@&quot;YY-MM-dd hh:mm&quot;];
-    NSString * timeScale = [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:0]];
-    password = [[password hmacMD5StringWithKey:key] stringByAppendingString:timeScale].md5String;
-    /// 发送到服务器验证
-    BOOL isAccount = [account isEqualToString:ServerReceivedAccount];
-    /// 服务器添加时间戳后验证
-    NSString * timeScaleNow = [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:0]];
-    NSString * timeScaleLast = [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:0 - 60]];
-    NSString * passwordNow = [ServerReceivedPassword stringByAppendingString:timeScaleNow].md5String;
-    NSString * passwordLast = [ServerReceivedPassword stringByAppendingString:timeScaleLast].md5String;
-    BOOL isPassword = [password isEqualToString:passwordNow] || [password isEqualToString:passwordLast];
-    if (isAccount &amp;&amp; isPassword) {
-        NSLog(@&quot;登陆成功&quot;);
-    } else {
-        NSLog(@&quot;登陆失败&quot;);
+    <span style="color:#75715e">/// 加时间戳
+</span><span style="color:#75715e"></span>    NSDateFormatter <span style="color:#f92672">*</span> dateFormatter <span style="color:#f92672">=</span> [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:<span style="color:#e6db74">@&#34;YY-MM-dd hh:mm&#34;</span>];
+    NSString <span style="color:#f92672">*</span> timeScale <span style="color:#f92672">=</span> [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:<span style="color:#ae81ff">0</span>]];
+    password <span style="color:#f92672">=</span> [[password hmacMD5StringWithKey:key] stringByAppendingString:timeScale].md5String;
+  
+    <span style="color:#75715e">/// 发送到服务器验证
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">BOOL</span> isAccount <span style="color:#f92672">=</span> [account isEqualToString:ServerReceivedAccount];
+    <span style="color:#75715e">/// 服务器添加时间戳后验证
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> timeScaleNow <span style="color:#f92672">=</span> [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:<span style="color:#ae81ff">0</span>]];
+    NSString <span style="color:#f92672">*</span> timeScaleLast <span style="color:#f92672">=</span> [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:<span style="color:#ae81ff">0</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">60</span>]];
+    NSString <span style="color:#f92672">*</span> passwordNow <span style="color:#f92672">=</span> [ServerReceivedPassword stringByAppendingString:timeScaleNow].md5String;
+    NSString <span style="color:#f92672">*</span> passwordLast <span style="color:#f92672">=</span> [ServerReceivedPassword stringByAppendingString:timeScaleLast].md5String;
+    <span style="color:#66d9ef">BOOL</span> isPassword <span style="color:#f92672">=</span> [password isEqualToString:passwordNow] <span style="color:#f92672">||</span> [password isEqualToString:passwordLast];
+    <span style="color:#66d9ef">if</span> (isAccount <span style="color:#f92672">&amp;&amp;</span> isPassword) {
+        NSLog(<span style="color:#e6db74">@&#34;登陆成功&#34;</span>);
+    } <span style="color:#66d9ef">else</span> {
+        NSLog(<span style="color:#e6db74">@&#34;登陆失败&#34;</span>);
     }
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <p>调用:</p>
 
-<pre><code class="language-objective-c">/**
- * 注册登录流程模拟:（HMAC加密+时间戳）再MD5加密
- */
-- (void)handleUserAccountPasswordBasedHMACTimeStamp {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 注册登录流程模拟:（HMAC加密+时间戳）再MD5加密
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)handleUserAccountPasswordBasedHMACTimeStamp {
     [self registerBasedHMACTimeStamp];
     [self loginBasedHMACTimeStamp];
 }
-</code></pre>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="oc的hash封装">OC的Hash封装</h3>
+
+<p>代码实例作为NSData的Category存在，首先导入头文件：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;NSData+HASH.h&#34;
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;CommonCrypto/CommonDigest.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span><span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>定义枚举：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">enum</span> <span style="color:#f92672">:</span> NSUInteger {
+    <span style="color:#75715e">//md2 16字节长度
+</span><span style="color:#75715e"></span>    CCDIGEST_MD2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000</span>,
+    <span style="color:#75715e">//md4 16字节长度
+</span><span style="color:#75715e"></span>    CCDIGEST_MD4,
+    <span style="color:#75715e">//md5 16字节长度
+</span><span style="color:#75715e"></span>    CCDIGEST_MD5,
+    <span style="color:#75715e">//sha1 20字节长度
+</span><span style="color:#75715e"></span>    CCDIGEST_SHA1,
+    <span style="color:#75715e">//SHA224 28字节长度
+</span><span style="color:#75715e"></span>    CCDIGEST_SHA224,
+    <span style="color:#75715e">//SHA256 32字节长度
+</span><span style="color:#75715e"></span>    CCDIGEST_SHA256,
+    <span style="color:#75715e">//SHA384 48字节长度
+</span><span style="color:#75715e"></span>    CCDIGEST_SHA384,
+    <span style="color:#75715e">//SHA512 64字节长度
+</span><span style="color:#75715e"></span>    CCDIGEST_SHA512,
+} CCDIGESTAlgorithm;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>返回NSData对应的Hash字符串：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> 返回data的Hash字符串
+</span><span style="color:#75715e"> 
+</span><span style="color:#75715e"> @return hashString
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (NSString <span style="color:#f92672">*</span>)hashString {
+    
+    NSMutableString <span style="color:#f92672">*</span>result <span style="color:#f92672">=</span> nil;
+    <span style="color:#66d9ef">if</span> (self.length <span style="color:#f92672">&lt;</span><span style="color:#ae81ff">1</span>) {
+        <span style="color:#66d9ef">return</span> nil;
+    }
+    result <span style="color:#f92672">=</span> [[NSMutableString alloc] initWithCapacity:self.length <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>];
+    <span style="color:#66d9ef">for</span> (size_t i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> self.length; i<span style="color:#f92672">++</span>) {
+        [result appendFormat:<span style="color:#e6db74">@&#34;%02x&#34;</span>, ((<span style="color:#66d9ef">const</span> uint8_t <span style="color:#f92672">*</span>) self.bytes)[i]];
+    }
+    <span style="color:#66d9ef">return</span> result;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>返回 hash string的 data：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> 返回 hash string的 data
+</span><span style="color:#75715e"> 
+</span><span style="color:#75715e"> @param hexString hash string
+</span><span style="color:#75715e"> @return data
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (NSData <span style="color:#f92672">*</span>)dataWithHexString:(NSString <span style="color:#f92672">*</span>)hexString {
+		NSParameterAssert(hexString <span style="color:#f92672">!=</span> nil);
+		NSMutableData <span style="color:#f92672">*</span>     result;
+    NSUInteger          cursor;
+    NSUInteger          limit;
+    
+    result <span style="color:#f92672">=</span> nil;
+    cursor <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    limit <span style="color:#f92672">=</span> hexString.length;
+    <span style="color:#66d9ef">if</span> ((limit <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+        result <span style="color:#f92672">=</span> [[NSMutableData alloc] init];        
+        <span style="color:#66d9ef">while</span> (cursor <span style="color:#f92672">!=</span> limit) {
+            <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span>    thisUInt;
+            uint8_t         thisByte;
+            <span style="color:#66d9ef">if</span> (sscanf([hexString substringWithRange:NSMakeRange(cursor, <span style="color:#ae81ff">2</span>)].UTF8String, <span style="color:#e6db74">&#34;%x&#34;</span>, <span style="color:#f92672">&amp;</span>thisUInt) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>){
+                result <span style="color:#f92672">=</span> nil;
+                <span style="color:#66d9ef">break</span>;
+            }
+            thisByte <span style="color:#f92672">=</span> (uint8_t) thisUInt;
+            [result appendBytes:<span style="color:#f92672">&amp;</span>thisByte length:<span style="color:#66d9ef">sizeof</span>(thisByte)];
+            cursor <span style="color:#f92672">+=</span> <span style="color:#ae81ff">2</span>;
+        }
+    }
+    <span style="color:#66d9ef">return</span> result;
+}
+
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>根据不同的算法计算数据的hash值：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> 根据不同的算法计算数据的hash值
+</span><span style="color:#75715e"> 
+</span><span style="color:#75715e"> @param ccAlgorithm 算法参数
+</span><span style="color:#75715e"> @return 加密data
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (NSData <span style="color:#f92672">*</span>)hashDataWith:(CCDIGESTAlgorithm )ccAlgorithm {
+    NSData <span style="color:#f92672">*</span>retData <span style="color:#f92672">=</span> nil;
+    <span style="color:#66d9ef">if</span> (self.length <span style="color:#f92672">&lt;</span><span style="color:#ae81ff">1</span>) {
+        <span style="color:#66d9ef">return</span> nil;
+    }
+    
+    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>md;
+    <span style="color:#66d9ef">switch</span> (ccAlgorithm) {
+        <span style="color:#66d9ef">case</span> CCDIGEST_MD2:
+        {
+            md <span style="color:#f92672">=</span> malloc(CC_MD2_DIGEST_LENGTH);
+            bzero(md, CC_MD2_DIGEST_LENGTH);
+            CC_MD2(self.bytes, (CC_LONG)self.length, md);
+            retData <span style="color:#f92672">=</span> [NSData dataWithBytes:md length:CC_MD2_DIGEST_LENGTH];
+        }
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> CCDIGEST_MD4:
+        {
+            md <span style="color:#f92672">=</span> malloc(CC_MD4_DIGEST_LENGTH);
+            bzero(md, CC_MD4_DIGEST_LENGTH);
+            CC_MD4(self.bytes, (CC_LONG)self.length, md);
+            retData <span style="color:#f92672">=</span> [NSData dataWithBytes:md length:CC_MD4_DIGEST_LENGTH];
+        }
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> CCDIGEST_MD5:
+        {
+            md <span style="color:#f92672">=</span> malloc(CC_MD5_DIGEST_LENGTH);
+            bzero(md, CC_MD5_DIGEST_LENGTH);
+            CC_MD5(self.bytes, (CC_LONG)self.length, md);
+            retData <span style="color:#f92672">=</span> [NSData dataWithBytes:md length:CC_MD5_DIGEST_LENGTH];
+        }
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> CCDIGEST_SHA1:
+        {
+            md <span style="color:#f92672">=</span> malloc(CC_SHA1_DIGEST_LENGTH);
+            bzero(md, CC_SHA1_DIGEST_LENGTH);
+            CC_SHA1(self.bytes, (CC_LONG)self.length, md);
+            retData <span style="color:#f92672">=</span> [NSData dataWithBytes:md length:CC_SHA1_DIGEST_LENGTH];
+        }
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> CCDIGEST_SHA224:
+        {
+            md <span style="color:#f92672">=</span> malloc(CC_SHA224_DIGEST_LENGTH);
+            bzero(md, CC_SHA224_DIGEST_LENGTH);
+            CC_SHA224(self.bytes, (CC_LONG)self.length, md);
+            retData <span style="color:#f92672">=</span> [NSData dataWithBytes:md length:CC_SHA224_DIGEST_LENGTH];
+        }
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> CCDIGEST_SHA256:
+        {
+            md <span style="color:#f92672">=</span> malloc(CC_SHA256_DIGEST_LENGTH);
+            bzero(md, CC_SHA256_DIGEST_LENGTH);
+            CC_SHA256(self.bytes, (CC_LONG)self.length, md);
+            retData <span style="color:#f92672">=</span> [NSData dataWithBytes:md length:CC_SHA256_DIGEST_LENGTH];
+        }
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> CCDIGEST_SHA384:
+        {
+            md <span style="color:#f92672">=</span> malloc(CC_SHA384_DIGEST_LENGTH);
+            bzero(md, CC_SHA384_DIGEST_LENGTH);
+            CC_SHA384(self.bytes, (CC_LONG)self.length, md);
+            retData <span style="color:#f92672">=</span> [NSData dataWithBytes:md length:CC_SHA384_DIGEST_LENGTH];
+        }
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> CCDIGEST_SHA512:
+        {
+            md <span style="color:#f92672">=</span> malloc(CC_SHA512_DIGEST_LENGTH);
+            bzero(md, CC_SHA512_DIGEST_LENGTH);
+            CC_SHA512(self.bytes, (CC_LONG)self.length, md);
+            retData <span style="color:#f92672">=</span> [NSData dataWithBytes:md length:CC_SHA512_DIGEST_LENGTH];
+        }
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>
+            md <span style="color:#f92672">=</span> malloc(<span style="color:#ae81ff">1</span>);
+            <span style="color:#66d9ef">break</span>;
+    }
+    
+    free(md);
+    md <span style="color:#f92672">=</span> NULL;
+    
+    <span style="color:#66d9ef">return</span> retData;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>base64编码进行网络传输：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/** 将传入的二进制数据,编码成base64格式的字符串
+</span><span style="color:#75715e"> @param data 需要编码的二进制数据
+</span><span style="color:#75715e"> @return base64编码以后的string
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span>base64_encode_data(NSData <span style="color:#f92672">*</span>data) {
+    data <span style="color:#f92672">=</span> [data base64EncodedDataWithOptions:<span style="color:#ae81ff">0</span>];
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>data) <span style="color:#66d9ef">return</span> <span style="color:#e6db74">@&#34;&#34;</span>;
+    NSString <span style="color:#f92672">*</span>ret <span style="color:#f92672">=</span> [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    <span style="color:#66d9ef">return</span> ret;
+    
+}
+<span style="color:#75715e">/** 将base64编码的String,解码成二进制数据
+</span><span style="color:#75715e"> @param str base64编码以后的数据
+</span><span style="color:#75715e"> @return 原始二进制数据
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> NSData <span style="color:#f92672">*</span>base64_decode(NSString <span style="color:#f92672">*</span>str) {
+    NSData <span style="color:#f92672">*</span>data <span style="color:#f92672">=</span> [[NSData alloc] initWithBase64EncodedString:str options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    <span style="color:#66d9ef">return</span> data;
+}
+
+<span style="color:#f92672">~~~</span></code></pre></div>
 
 <h3 id="总结">总结</h3>
 
@@ -504,7 +734,7 @@ static NSString * ServerReceivedPassword;
 	<h4 class="widget__title">Recent Posts</h4>
 	<div class="widget__content">
 		<ul class="widget__list">
-			<li class="widget__item"><a class="widget__link" href="/post/basic-elements/">Basic HTML Elements</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/ios%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/">iOS:密码学(非对称加密)</a></li>
 			<li class="widget__item"><a class="widget__link" href="/post/ios%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/">iOS:密码学(对称加密)</a></li>
 			<li class="widget__item"><a class="widget__link" href="/post/ios%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95/">iOS:密码学(哈希算法)</a></li>
 		</ul>
@@ -515,9 +745,6 @@ static NSString * ServerReceivedPassword;
 	<div class="widget__content">
 		<ul class="widget__list">
 			<li class="widget__item">
-				<a class="widget__link" href="/categories/development/">Development</a>
-			</li>
-			<li class="widget__item">
 				<a class="widget__link" href="/categories/ios/">iOS</a>
 			</li>
 		</ul>
@@ -526,9 +753,6 @@ static NSString * ServerReceivedPassword;
 <div class="widget-taglist widget">
 	<h4 class="widget__title">Tags</h4>
 	<div class="widget__content">
-		<a class="widget-taglist__link widget__link btn" href="/tags/basic-elements/" title="Basic Elements">Basic Elements</a>
-		<a class="widget-taglist__link widget__link btn" href="/tags/css/" title="CSS">CSS</a>
-		<a class="widget-taglist__link widget__link btn" href="/tags/html/" title="HTML">HTML</a>
 		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AE%89%E5%85%A8/" title="安全">安全</a>
 	</div>
 </div>
@@ -542,9 +766,9 @@ static NSString * ServerReceivedPassword;
 			</a>
 		</div>
 		<div class="widget-social__item widget__item">
-			<a class="widget-social__link widget__link btn" title="Email" href="mailto:mailto:sean.vip.contact@foxmail.com">
+			<a class="widget-social__link widget__link btn" title="Email" href="mailto:sean.vip.contact@foxmail.com">
 				<svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16-256-16h-16-384-16zm347 16-139 92.5-139-92.5zm-148 125.5 9 5.5 9-5.5 167-111.5v210h-352v-210z"/></svg>
-				<span>mailto:sean.vip.contact@foxmail.com</span>
+				<span>sean.vip.contact@foxmail.com</span>
 			</a>
 		</div>
 
