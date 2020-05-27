@@ -21,7 +21,7 @@
 
 <meta itemprop="datePublished" content="2015-11-15T16:20:26&#43;08:00" />
 <meta itemprop="dateModified" content="2015-11-15T16:20:26&#43;08:00" />
-<meta itemprop="wordCount" content="636">
+<meta itemprop="wordCount" content="645">
 
 
 
@@ -84,8 +84,6 @@
 <ul>
 <li><a href="#特点">特点</a></li>
 <li><a href="#应用">应用</a></li>
-<li><a href="#md5直接加密">MD5直接加密</a></li>
-<li><a href="#加盐后md5">加盐后MD5</a></li>
 </ul></li>
 <li><a href="#sha1-256-512">SHA1（256/512）</a>
 <ul>
@@ -96,6 +94,11 @@
 <ul>
 <li><a href="#特点-2">特点</a></li>
 <li><a href="#应用-2">应用</a></li>
+</ul></li>
+<li><a href="#实例">实例</a>
+<ul>
+<li><a href="#md5直接加密">MD5直接加密</a></li>
+<li><a href="#加盐后md5">加盐后MD5</a></li>
 <li><a href="#hmac加密">HMAC加密</a></li>
 <li><a href="#hmac-时间戳再md5">HMAC+时间戳再MD5</a></li>
 </ul></li>
@@ -157,108 +160,6 @@
 <li>安全访问认证。</li>
 </ol>
 
-<h4 id="md5直接加密">MD5直接加密</h4>
-
-<p>我们通过代码模拟一下注册登录的流程；直接MD5加密简单直接，但安全系数低，一般不单独采用：</p>
-
-<pre><code class="language-objective-c">#pragma mark - 加密方式1：直接MD5加密
-static NSString * Account1;
-static NSString * Password1;
-/**
- * 注册登录流程模拟
- */
-- (void)handleUserAccountPasswordBasedMD5 {
-    
-    [self registerBasedMD5];
-    [self loginBasedMD5];
-}
-/**
- * 注册加密处理
- */
-- (void)registerBasedMD5 {
-    
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = password.md5String;
-    
-    /// 发送到服务器接收
-    Account1 = account;
-    Password1 = password;
-    NSLog(@&quot;The account server received is:%@&quot;, Account1);
-    NSLog(@&quot;The password server received is:%@&quot;, Password1);
-}
-/**
- * 登录加密处理
- */
-- (void)loginBasedMD5 {
-    
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = password.md5String;
-    
-    /// 发送到服务器验证
-    if ([account isEqualToString:Account1] &amp;&amp; [password isEqualToString:Password1]) {
-        NSLog(@&quot;登陆成功&quot;);
-    } else {
-        NSLog(@&quot;登陆失败&quot;);
-    }
-}
-</code></pre>
-
-<h4 id="加盐后md5">加盐后MD5</h4>
-
-<p>密码加盐后MD5加密比单纯加密要安全，但是弊端很明显：盐写死在程序，要更换盐代价很大，而且盐的泄漏风险很高：</p>
-
-<pre><code class="language-objective-c">#pragma mark - 加密方式2：密码加盐后MD5加密
-static NSString * Account2;
-static NSString * Password2;
-///盐：盐要足够长，足够复杂.
-static NSString * salt = @&quot;THIBSNNABKDAINDND91i2e9uqENSDDSJNDJNJSDNJ81838jaw92&quot;;
-/**
- * 注册登录流程模拟
- */
-- (void)handleUserAccountPasswordBasedSaltMD5 {
-    
-    [self registerBasedSaltMD5];
-    [self loginBasedSaltMD5];
-}
-/**
- * 注册加密处理
- */
-- (void)registerBasedSaltMD5 {
-    
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = [password stringByAppendingString:salt].md5String;
-    
-    /// 发送到服务器接收
-    Account2 = account;
-    Password2 = password;
-    NSLog(@&quot;The account server received is:%@&quot;, Account2);
-    NSLog(@&quot;The password server received is:%@&quot;, Password2);
-}
-/**
- * 登录加密处理
- */
-- (void)loginBasedSaltMD5 {
-    
-    /// 本地账号密码处理
-    NSString * account = @&quot;18918186688&quot;;
-    NSString * password = @&quot;Sean12345678&quot;;
-    password = [password stringByAppendingString:salt].md5String;
-    
-    /// 发送到服务器验证
-    if ([account isEqualToString:Account2] &amp;&amp; [password isEqualToString:Password2]) {
-        NSLog(@&quot;登陆成功&quot;);
-    } else {
-        NSLog(@&quot;登陆失败&quot;);
-    }
-}
-</code></pre>
-
 <h3 id="sha1-256-512">SHA1（256/512）</h3>
 
 <h4 id="特点-1">特点</h4>
@@ -282,60 +183,48 @@ static NSString * salt = @&quot;THIBSNNABKDAINDND91i2e9uqENSDDSJNDJNJSDNJ81838ja
 <li>设备锁（KEY保存到钥匙串中，以KEY为设备锁的依据）</li>
 </ol>
 
-<h4 id="hmac加密">HMAC加密</h4>
+<h3 id="实例">实例</h3>
 
-<p>HMAC加密，KEY从服务器获取，此种加密相对较为安全，但同样有严重漏洞：网络传输过程中加密的HMAC字符串很容易泄漏，进而被攻击者模拟用户行为进行登录，获取用户数据：</p>
+<h4 id="md5直接加密">MD5直接加密</h4>
 
-<pre><code class="language-objective-c">#define KEY_ACCOUNTKEY @&quot;KEY_ACCOUNTKEY&quot;
-#define BUNDLEID [[NSBundle mainBundle] bundleIdentifier]
-static NSString * Account3;
-static NSString * Password3;
-/**
- * 注册登录流程模拟
- */
-- (void)handleUserAccountPasswordBasedHMAC {
-    
-    [self registerBasedHMAC];
-    [self loginBasedHMAC];
-}
-/**
+<p>我们通过代码模拟一下注册登录的流程；直接MD5加密简单直接，但安全系数低，一般不单独采用。</p>
+
+<p>首先定义常量:</p>
+
+<pre><code class="language-objective-c">static NSString * ServerReceivedAccount;
+static NSString * ServerReceivedPassword;
+</code></pre>
+
+<p>然后模拟注册流程:</p>
+
+<pre><code class="language-objective-c">/**
  * 注册加密处理
  */
-- (void)registerBasedHMAC {
-    
-    /// 从服务器获取Key并保存到keychain
-    NSString * key = @&quot;useraccount281818&quot;;
-    [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
-    
+- (void)registerBasedMD5 {
     /// 本地账号密码处理
     NSString * account = @&quot;18918186688&quot;;
     NSString * password = @&quot;Sean12345678&quot;;
-    password = [password hmacMD5StringWithKey:key];
-    
+    password = password.md5String;
     /// 发送到服务器接收
-    Account3 = account;
-    Password3 = password;
-    NSLog(@&quot;The account server received is:%@&quot;, Account3);
-    NSLog(@&quot;The password server received is:%@&quot;, Password3);
+    ServerReceivedAccount = account;
+    ServerReceivedPassword = password;
+    NSLog(@&quot;The account server received is:%@&quot;, ServerReceivedAccount);
+    NSLog(@&quot;The password server received is:%@&quot;, ServerReceivedPassword);
 }
-/**
+</code></pre>
+
+<p>再模拟登陆:</p>
+
+<pre><code class="language-objective-c">/**
  * 登录加密处理
  */
-- (void)loginBasedHMAC {
-    
+- (void)loginBasedMD5 {
     /// 本地账号密码处理
     NSString * account = @&quot;18918186688&quot;;
     NSString * password = @&quot;Sean12345678&quot;;
-    NSString * key = [SAMKeychain passwordForService:BUNDLEID account:KEY_ACCOUNTKEY];
-    if (!key) {
-        /// 从服务器获取Key并保存到keychain
-        key = @&quot;useraccount281818&quot;;
-        [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
-    }
-    password = [password hmacMD5StringWithKey:key];
-    
-    /// 发送到服务器验证
-    if ([account isEqualToString:Account3] &amp;&amp; [password isEqualToString:Password3]) {
+    password = password.md5String;
+    /// 发送到服务器接收后，服务器做验证
+    if ([account isEqualToString:ServerReceivedAccount] &amp;&amp; [password isEqualToString:ServerReceivedPassword]) {
         NSLog(@&quot;登陆成功&quot;);
     } else {
         NSLog(@&quot;登陆失败&quot;);
@@ -343,52 +232,189 @@ static NSString * Password3;
 }
 </code></pre>
 
-<h4 id="hmac-时间戳再md5">HMAC+时间戳再MD5</h4>
+<p>调用:</p>
 
-<p>密码+key进行HMAC加密，后拼接时间戳，然后再整体进行MD5加密。
-​这种方式有时间限定，加密的结果受时间影响很大，即使黑客获取密文模仿用户进行登录，也必须在2分钟内完成此操作，很大程度上增加了安全性。一般采用这种方式进行注册登录流程的加密：</p>
-
-<pre><code class="language-objective-c">static NSString * Account4;
-static NSString * Password4;
-/**
- * 注册登录流程模拟:（HMAC加密+时间戳）再MD5加密
+<pre><code class="language-objective-c">/**
+ * 注册登录流程模拟
  */
-- (void)handleUserAccountPasswordBasedHMACTimeStamp {
-    
-    [self registerBasedHMACTimeStamp];
-    [self loginBasedHMACTimeStamp];
+- (void)handleUserAccountPasswordBasedMD5 {
+    [self registerBasedMD5];
+    [self loginBasedMD5];
 }
-/**
- * 注册加密处理:（HMAC加密+时间戳）再MD5加密(注册时发送给服务器的密码是不添加时间戳和再MD5处理的)
+</code></pre>
+
+<h4 id="加盐后md5">加盐后MD5</h4>
+
+<p>密码加盐后MD5加密比单纯加密要安全，但是弊端很明显：盐写死在程序，要更换盐代价很大，而且盐的泄漏风险很高。</p>
+
+<p>首先定义常量:</p>
+
+<pre><code class="language-objective-c">static NSString * ServerReceivedAccount;
+static NSString * ServerReceivedPassword;
+///盐：盐要足够长，足够复杂.
+static NSString * salt = @&quot;THIBSNNABKDAINDND91i2e9uqENSDDSJNDJNJSDNJ81838jaw92&quot;;
+</code></pre>
+
+<p>然后模拟注册流程:</p>
+
+<pre><code class="language-objective-c">/**
+ * 注册加密处理
  */
-- (void)registerBasedHMACTimeStamp {
-    
+- (void)registerBasedSaltMD5 {
+    /// 本地账号密码处理
+    NSString * account = @&quot;18918186688&quot;;
+    NSString * password = @&quot;Sean12345678&quot;;
+    password = [password stringByAppendingString:salt].md5String;
+    /// 发送到服务器接收
+    ServerReceivedAccount = account;
+    ServerReceivedPassword = password;
+    NSLog(@&quot;The account server received is:%@&quot;, ServerReceivedAccount);
+    NSLog(@&quot;The password server received is:%@&quot;, ServerReceivedPassword);
+}
+</code></pre>
+
+<p>再模拟登陆:</p>
+
+<pre><code class="language-objective-c">/**
+ * 登录加密处理
+ */
+- (void)loginBasedSaltMD5 {
+    /// 本地账号密码处理
+    NSString * account = @&quot;18918186688&quot;;
+    NSString * password = @&quot;Sean12345678&quot;;
+    password = [password stringByAppendingString:salt].md5String;
+    /// 发送到服务器接收后，服务器做验证
+    if ([account isEqualToString:ServerReceivedAccount] &amp;&amp; [password isEqualToString:ServerReceivedPassword]) {
+        NSLog(@&quot;登陆成功&quot;);
+    } else {
+        NSLog(@&quot;登陆失败&quot;);
+    }
+}
+</code></pre>
+
+<p>调用:</p>
+
+<pre><code class="language-objective-c">/**
+ * 注册登录流程模拟
+ */
+- (void)handleUserAccountPasswordBasedSaltMD5 {   
+    [self registerBasedSaltMD5];
+    [self loginBasedSaltMD5];
+}
+</code></pre>
+
+<h4 id="hmac加密">HMAC加密</h4>
+
+<p>HMAC加密，KEY从服务器获取，此种加密相对较为安全，但同样有漏洞：网络传输过程中加密的HMAC字符串很容易泄漏，进而被攻击者模拟用户行为进行登录，获取用户数据。</p>
+
+<p>首先定义常量:</p>
+
+<pre><code class="language-objective-c">#define KEY_ACCOUNTKEY @&quot;KEY_ACCOUNTKEY&quot;
+#define BUNDLEID [[NSBundle mainBundle] bundleIdentifier]
+static NSString * ServerReceivedAccount;
+static NSString * ServerReceivedPassword;
+</code></pre>
+
+<p>然后模拟注册流程:</p>
+
+<pre><code class="language-objective-c">/**
+ * 注册加密处理
+ */
+- (void)registerBasedHMAC {
     /// 从服务器获取Key并保存到keychain
     NSString * key = @&quot;useraccount281818&quot;;
     [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
-    
     /// 本地账号密码处理
     NSString * account = @&quot;18918186688&quot;;
     NSString * password = @&quot;Sean12345678&quot;;
     password = [password hmacMD5StringWithKey:key];
     
     /// 发送到服务器接收
-    Account4 = account;
-    Password4 = password;
-    NSLog(@&quot;The account server received is:%@&quot;, Account4);
-    NSLog(@&quot;The password server received is:%@&quot;, Password4);
+    ServerReceivedAccount = account;
+    ServerReceivedPassword = password;
+    NSLog(@&quot;The account server received is:%@&quot;, ServerReceivedAccount);
+    NSLog(@&quot;The password server received is:%@&quot;, ServerReceivedPassword);
 }
-/**
- * 登录加密处理:（HMAC加密+时间戳）再MD5加密
+</code></pre>
+
+<p>再模拟登陆:</p>
+
+<pre><code class="language-objective-c">/**
+ * 登录加密处理
  */
-- (void)loginBasedHMACTimeStamp {
-    
+- (void)loginBasedHMAC {
     /// 本地账号密码处理
     NSString * account = @&quot;18918186688&quot;;
     NSString * password = @&quot;Sean12345678&quot;;
     NSString * key = [SAMKeychain passwordForService:BUNDLEID account:KEY_ACCOUNTKEY];
-    if (!key) {
-        /// 从服务器获取Key并保存到keychain
+    if (!key) { // 从服务器获取Key并保存到keychain
+        key = @&quot;useraccount281818&quot;;
+        [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
+    }
+    password = [password hmacMD5StringWithKey:key];
+    /// 发送到服务器接收后，服务器做验证
+    if ([account isEqualToString:ServerReceivedAccount] &amp;&amp; [password isEqualToString:ServerReceivedPassword]) {
+        NSLog(@&quot;登陆成功&quot;);
+    } else {
+        NSLog(@&quot;登陆失败&quot;);
+    }
+}
+</code></pre>
+
+<p>调用:</p>
+
+<pre><code class="language-objective-c">/**
+ * 注册登录流程模拟
+ */
+- (void)handleUserAccountPasswordBasedHMAC {    
+    [self registerBasedHMAC];
+    [self loginBasedHMAC];
+}
+</code></pre>
+
+<h4 id="hmac-时间戳再md5">HMAC+时间戳再MD5</h4>
+
+<p>密码+key进行HMAC加密，后拼接时间戳，然后再整体进行MD5加密。
+​这种方式有时间限定，加密的结果受时间影响很大，即使黑客获取密文模仿用户进行登录，也必须在2分钟内完成此操作，很大程度上增加了安全性。一般采用这种方式进行注册登录流程的加密。</p>
+
+<p>首先定义常量:</p>
+
+<pre><code class="language-objective-c">static NSString * ServerReceivedAccount;
+static NSString * ServerReceivedPassword;
+</code></pre>
+
+<p>然后模拟注册流程:</p>
+
+<pre><code class="language-objective-c">/**
+ * 注册加密处理:（HMAC加密+时间戳）再MD5加密(注册时发送给服务器的密码是不添加时间戳和再MD5处理的)
+ */
+- (void)registerBasedHMACTimeStamp {
+    /// 从服务器获取Key并保存到keychain
+    NSString * key = @&quot;useraccount281818&quot;;
+    [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
+    /// 本地账号密码处理
+    NSString * account = @&quot;18918186688&quot;;
+    NSString * password = @&quot;Sean12345678&quot;;
+    password = [password hmacMD5StringWithKey:key];
+    /// 发送到服务器接收
+    ServerReceivedAccount = account;
+    ServerReceivedPassword = password;
+    NSLog(@&quot;The account server received is:%@&quot;, ServerReceivedAccount);
+    NSLog(@&quot;The password server received is:%@&quot;, ServerReceivedPassword);
+}
+</code></pre>
+
+<p>再模拟登陆:</p>
+
+<pre><code class="language-objective-c">/**
+ * 登录加密处理:（HMAC加密+时间戳）再MD5加密
+ */
+- (void)loginBasedHMACTimeStamp {
+    /// 本地账号密码处理
+    NSString * account = @&quot;18918186688&quot;;
+    NSString * password = @&quot;Sean12345678&quot;;
+    NSString * key = [SAMKeychain passwordForService:BUNDLEID account:KEY_ACCOUNTKEY];
+    if (!key) { // 从服务器获取Key并保存到keychain
         key = @&quot;useraccount281818&quot;;
         [SAMKeychain setPassword:key forService:BUNDLEID account:KEY_ACCOUNTKEY];
     }
@@ -397,16 +423,14 @@ static NSString * Password4;
     [dateFormatter setDateFormat:@&quot;YY-MM-dd hh:mm&quot;];
     NSString * timeScale = [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:0]];
     password = [[password hmacMD5StringWithKey:key] stringByAppendingString:timeScale].md5String;
-    
     /// 发送到服务器验证
-    BOOL isAccount = [account isEqualToString:Account4];
+    BOOL isAccount = [account isEqualToString:ServerReceivedAccount];
     /// 服务器添加时间戳后验证
     NSString * timeScaleNow = [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:0]];
     NSString * timeScaleLast = [dateFormatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:0 - 60]];
-    NSString * passwordNow = [Password4 stringByAppendingString:timeScaleNow].md5String;
-    NSString * passwordLast = [Password4 stringByAppendingString:timeScaleLast].md5String;
+    NSString * passwordNow = [ServerReceivedPassword stringByAppendingString:timeScaleNow].md5String;
+    NSString * passwordLast = [ServerReceivedPassword stringByAppendingString:timeScaleLast].md5String;
     BOOL isPassword = [password isEqualToString:passwordNow] || [password isEqualToString:passwordLast];
-    
     if (isAccount &amp;&amp; isPassword) {
         NSLog(@&quot;登陆成功&quot;);
     } else {
@@ -415,11 +439,22 @@ static NSString * Password4;
 }
 </code></pre>
 
+<p>调用:</p>
+
+<pre><code class="language-objective-c">/**
+ * 注册登录流程模拟:（HMAC加密+时间戳）再MD5加密
+ */
+- (void)handleUserAccountPasswordBasedHMACTimeStamp {
+    [self registerBasedHMACTimeStamp];
+    [self loginBasedHMACTimeStamp];
+}
+</code></pre>
+
 <h3 id="总结">总结</h3>
 
 <p>md5，sha1，hmac，等算法，在不同的场景适于不同的使用方式，加密并不是一成不变的固定套路，要根据具体业务探索适合的加密方案；</p>
 
-<p>安全方面的攻击和防御，是一场不对等的战争，防者千虑，可能也免不了疏忽，作为一线技术，能做的就是最大化的保证应用安全，而企业级的项目安全，需要的是成体系的安全防范方案，哈希加密只是其中的一小部分。</p>
+<p>安全方面的攻击和防御，是一场不对等的战争，防者千虑，可能也免不了疏忽，作为一线技术，能做的就是最大化的保证应用安全，而企业级的项目安全，需要的是成体系的安全防范方案，哈希加密只是其中的一部分。</p>
 		</div>
 		<footer class="post__footer">
 			
