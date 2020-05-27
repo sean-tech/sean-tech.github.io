@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>iOS:二维码 - sean</title>
+	<script>(function(d,e){d[e]=d[e].replace("no-js","js");})(document.documentElement,"className");</script>
+	<meta name="description" content="iOS二维码">
+		<meta property="og:title" content="iOS:二维码" />
+<meta property="og:description" content="iOS二维码" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://sean.vip/post/ios%E4%BA%8C%E7%BB%B4%E7%A0%81/" />
+<meta property="article:published_time" content="2016-01-06T14:18:58&#43;08:00"/>
+<meta property="article:modified_time" content="2016-01-06T14:18:58&#43;08:00"/>
+
+		
+<meta itemprop="name" content="iOS:二维码">
+<meta itemprop="description" content="iOS二维码">
+
+
+<meta itemprop="datePublished" content="2016-01-06T14:18:58&#43;08:00" />
+<meta itemprop="dateModified" content="2016-01-06T14:18:58&#43;08:00" />
+<meta itemprop="wordCount" content="0">
+
+
+
+<meta itemprop="keywords" content="二维码," />
+
+		<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="iOS:二维码"/>
+<meta name="twitter:description" content="iOS二维码"/>
+
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<link rel="stylesheet" href="/css/custom.css">
+	<link rel="shortcut icon" href="/favicon.ico">
+		
+</head>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container header__container">
+		
+	<div class="logo">
+		<a class="logo__link" href="/" title="sean" rel="home">
+			<div class="logo__title">sean</div>
+			<div class="logo__tagline">sean&#39;s zone</div>
+		</a>
+	</div>
+		<div class="divider"></div>
+	</div>
+</header>
+
+		<div class="wrapper flex">
+			<div class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">iOS:二维码</h1>
+			<div class="post__meta meta">
+<div class="meta__item-datetime meta__item">
+	<svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class="meta__text" datetime="2016-01-06T14:18:58&#43;08:00">2016-01-06</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2l1 2h8v11h-16v-13z"/></svg><span class="meta__text"><a class="meta__link" href="/categories/ios/" rel="category">iOS</a>
+	</span>
+</div></div>
+		</header>
+<div class="post__toc toc">
+	<div class="toc__title">Page content</div>
+	<div class="toc__menu">
+		<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#前言">前言</a></li>
+<li><a href="#生成">生成</a>
+<ul>
+<li><a href="#绘制logo">绘制logo</a></li>
+<li><a href="#bitmap绘图">Bitmap绘图</a></li>
+<li><a href="#二维码绘制">二维码绘制</a></li>
+</ul></li>
+<li><a href="#识别">识别</a>
+<ul>
+<li><a href="#绘制边框">绘制边框</a></li>
+<li><a href="#探测结果">探测结果</a></li>
+</ul></li>
+<li><a href="#扫描">扫描</a>
+<ul>
+<li><a href="#视图">视图</a></li>
+<li><a href="#控制器">控制器</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+	</div>
+</div>
+<div class="content post__content clearfix">
+			<p style="font-family:verdana;font-size:120%;color:gray" ,="" align="left">传统互联网的入口在浏览器，移动互联网的入口在二维码</p>
+
+<h3 id="前言">前言</h3>
+
+<p>在iOS7.0前，实现二维码扫描还需要借助第三方库，但如今，苹果的API逐渐完善与强大，这一功能我们可以借助AVFoundation框架来搞定。</p>
+
+<h3 id="生成">生成</h3>
+
+<h4 id="绘制logo">绘制logo</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> 添加二维码中间logo图片
+</span><span style="color:#75715e"> 
+</span><span style="color:#75715e"> - parameter centerImg: logo图片
+</span><span style="color:#75715e"> - parameter size:      logo图片像素宽高
+</span><span style="color:#75715e"> - parameter bgImage:   二维码图片
+</span><span style="color:#75715e"> - returns: 合成后图片
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (UIImage <span style="color:#f92672">*</span>)drawCenterImage:(UIImage <span style="color:#f92672">*</span>)centerImage BgImage:(UIImage <span style="color:#f92672">*</span>)bgImage Size:(CGFloat)size {
+    <span style="color:#75715e">// 1. 开启一个图形上下文
+</span><span style="color:#75715e"></span>    CGSize bgSize <span style="color:#f92672">=</span> bgImage.size;
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(bitmapImgSize, bitmapImgSize), false, ScreenScale);
+    <span style="color:#75715e">// 2. 绘制大图片
+</span><span style="color:#75715e"></span>    [bgImage drawInRect:CGRectMake(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, bgSize.width, bgSize.height)];
+    <span style="color:#75715e">// 3. 在中间绘制小图片
+</span><span style="color:#75715e"></span>    CGFloat x <span style="color:#f92672">=</span> (bgSize.width <span style="color:#f92672">-</span> size)<span style="color:#f92672">/</span><span style="color:#ae81ff">2.f</span>;
+    CGFloat y <span style="color:#f92672">=</span> (bgSize.height <span style="color:#f92672">-</span> size)<span style="color:#f92672">/</span><span style="color:#ae81ff">2.f</span>;
+    [centerImage drawInRect:CGRectMake(x, y, size, size)];
+    <span style="color:#75715e">// 4. 获取最终合成图片
+</span><span style="color:#75715e"></span>    UIImage <span style="color:#f92672">*</span> image <span style="color:#f92672">=</span> UIGraphicsGetImageFromCurrentImageContext();
+    <span style="color:#75715e">// 5. 关闭上下文
+</span><span style="color:#75715e"></span>    UIGraphicsEndImageContext();
+    
+    <span style="color:#66d9ef">return</span> image;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="bitmap绘图">Bitmap绘图</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> 使用位图根据CIImage生成指定大小的高清UIImage
+</span><span style="color:#75715e"> 
+</span><span style="color:#75715e"> - parameter ciImage: 指定CIImage
+</span><span style="color:#75715e"> - parameter size:    size    指定大小
+</span><span style="color:#75715e"> - returns: 生成好的高清图片
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (UIImage <span style="color:#f92672">*</span>)bitmapScaleImage:(CIImage <span style="color:#f92672">*</span>)orieignimage Size:(CGFloat)size {
+    CGRect extent <span style="color:#f92672">=</span> orieignimage.extent;
+    CGFloat scale <span style="color:#f92672">=</span> MIN(size<span style="color:#f92672">/</span>extent.size.width, size<span style="color:#f92672">/</span>extent.size.height);
+    
+    <span style="color:#75715e">// 1.创建bitmap;
+</span><span style="color:#75715e"></span>    CGFloat wh <span style="color:#f92672">=</span> extent.size.width <span style="color:#f92672">*</span> scale;
+    CGColorSpaceRef colorSpace <span style="color:#f92672">=</span> CGColorSpaceCreateDeviceGray();
+    CGContextRef bitmapRef <span style="color:#f92672">=</span> CGBitmapContextCreate(nil, (<span style="color:#66d9ef">int</span>)wh, (<span style="color:#66d9ef">int</span>)wh, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">0</span>, colorSpace, <span style="color:#ae81ff">0</span>);
+    
+    <span style="color:#75715e">// 2.图形上下文
+</span><span style="color:#75715e"></span>    CIContext <span style="color:#f92672">*</span> context <span style="color:#f92672">=</span> [[CIContext alloc] initWithOptions:<span style="color:#ae81ff">0</span>];
+    CGImageRef bitmapImage <span style="color:#f92672">=</span> [context createCGImage:orieignimage fromRect:extent];
+    CGContextSetInterpolationQuality(bitmapRef, kCGInterpolationNone);
+    CGContextScaleCTM(bitmapRef, scale, scale);
+    CGContextDrawImage(bitmapRef, extent, bitmapImage);
+    
+    <span style="color:#75715e">// 3.保存bitmap到图片
+</span><span style="color:#75715e"></span>    CGImageRef scaledImage <span style="color:#f92672">=</span> CGBitmapContextCreateImage(bitmapRef);
+    UIImage <span style="color:#f92672">*</span> image <span style="color:#f92672">=</span> [UIImage imageWithCGImage:scaledImage];
+    
+    <span style="color:#75715e">// 4.释放内存
+</span><span style="color:#75715e"></span>    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(bitmapRef);
+    CGImageRelease(scaledImage);
+    
+    <span style="color:#66d9ef">return</span> image;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="二维码绘制">二维码绘制</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> 接口：根据信息文本生成二维码
+</span><span style="color:#75715e"> 
+</span><span style="color:#75715e"> - parameter codeInfo:    信息文本
+</span><span style="color:#75715e"> - parameter centerImage: logo图片
+</span><span style="color:#75715e"> - returns: 绘制好的UIImage图片
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (UIImage <span style="color:#f92672">*</span>)QRCodeGenerateWithCodeInfo:(NSString <span style="color:#f92672">*</span>)codeInfo CenterImage:(UIImage <span style="color:#f92672">*</span>)centerImage {
+    NSData <span style="color:#f92672">*</span> codeData <span style="color:#f92672">=</span> [codeInfo dataUsingEncoding:NSUTF8StringEncoding];
+    <span style="color:#75715e">// 1. 创建一个滤镜
+</span><span style="color:#75715e"></span>    CIFilter <span style="color:#f92672">*</span> filter <span style="color:#f92672">=</span> [CIFilter filterWithName:<span style="color:#e6db74">@&#34;CIQRCodeGenerator&#34;</span>];
+    <span style="color:#75715e">// 1.1 恢复滤镜默认设置
+</span><span style="color:#75715e"></span>    [filter setDefaults];
+    <span style="color:#75715e">// 2. 设置二维码滤镜的输入数据, 需要通过KVC, 设置 inputMessage字段, 值为NSData
+</span><span style="color:#75715e"></span>    [filter setValue:codeData forKey:<span style="color:#e6db74">@&#34;inputMessage&#34;</span>];
+    <span style="color:#75715e">// 2.1 设置二维码纠错率, 需要通过KVC, 设置 inputCorrectionLevel字段, 值为L, M, Q, H
+</span><span style="color:#75715e"></span>    [filter setValue:<span style="color:#e6db74">@&#34;H&#34;</span> forKey:<span style="color:#e6db74">@&#34;inputCorrectionLevel&#34;</span>];
+    <span style="color:#75715e">// 3. 获取输出图片(默认大小是23 X 23)
+</span><span style="color:#75715e"></span>    CIImage <span style="color:#f92672">*</span> outputImage <span style="color:#f92672">=</span> [filter outputImage];
+    <span style="color:#75715e">// 3.1 后期处理, 借助位图的方式, 放大图片
+</span><span style="color:#75715e"></span>    UIImage <span style="color:#f92672">*</span> image <span style="color:#f92672">=</span> [self bitmapScaleImage:outputImage Size:bitmapImgSize];
+    
+    <span style="color:#66d9ef">if</span> (centerImage) {
+        <span style="color:#66d9ef">return</span> [self drawCenterImage:centerImage BgImage:image Size:centerImgSize];
+    }
+    <span style="color:#66d9ef">return</span> image;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="识别">识别</h3>
+
+<h4 id="绘制边框">绘制边框</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 绘制识别出的二维码边框
+</span><span style="color:#75715e"> - parameter qrFeature: CIQRCodeFeature特征对象
+</span><span style="color:#75715e"> - parameter image:     绘制识别的Image
+</span><span style="color:#75715e"> - returns: 绘制完成的Image
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (UIImage <span style="color:#f92672">*</span>)drawQRCodeBoder:(CIQRCodeFeature <span style="color:#f92672">*</span>)qrcodeFeature Image:(UIImage <span style="color:#f92672">*</span>)image {
+    <span style="color:#75715e">// 1. 开启图形上下文
+</span><span style="color:#75715e"></span>    UIGraphicsBeginImageContext(image.size);
+    <span style="color:#75715e">// 2. 绘制图片
+</span><span style="color:#75715e"></span>    [image drawInRect:CGRectMake(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, image.size.width, image.size.height)];
+    <span style="color:#75715e">// 3. 上下颠倒坐标系
+</span><span style="color:#75715e"></span>    CGContextRef context <span style="color:#f92672">=</span> UIGraphicsGetCurrentContext();
+    CGContextScaleCTM(context, <span style="color:#ae81ff">1.0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1.0</span>);
+    CGContextTranslateCTM(context, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span>image.size.height);
+    <span style="color:#75715e">// 4. 绘制识别的二维码的矩形框
+</span><span style="color:#75715e"></span>    UIBezierPath <span style="color:#f92672">*</span> bezierPath <span style="color:#f92672">=</span> [UIBezierPath bezierPathWithRect:qrcodeFeature.bounds];
+    [[UIColor redColor] set];
+    bezierPath.lineWidth <span style="color:#f92672">=</span> <span style="color:#ae81ff">3.f</span>;
+    [bezierPath stroke];
+    <span style="color:#75715e">// 5. 取出图片
+</span><span style="color:#75715e"></span>    UIImage <span style="color:#f92672">*</span> handleImage <span style="color:#f92672">=</span> UIGraphicsGetImageFromCurrentImageContext();
+    <span style="color:#75715e">// 6. 关闭图形上下文
+</span><span style="color:#75715e"></span>    UIGraphicsEndImageContext();
+    
+    <span style="color:#66d9ef">return</span> handleImage;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="探测结果">探测结果</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> 接口： 根据图片进行二维码识别，识别成功进行闭包回调
+</span><span style="color:#75715e"> 
+</span><span style="color:#75715e"> - parameter Image: 要识别的包含二维码的图片
+</span><span style="color:#75715e"> - parameter DrawQRCodeFrame:  是否绘制边框
+</span><span style="color:#75715e"> - parameter result:      闭包回调
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (<span style="color:#66d9ef">void</span>)detectorWithImage:(UIImage <span style="color:#f92672">*</span>)image DrawQRCodeFrame:(<span style="color:#66d9ef">BOOL</span>)drawQRCodeFrame Result:(<span style="color:#66d9ef">void</span> (<span style="color:#f92672">^</span>)(UIImage <span style="color:#f92672">*</span> image, NSArray <span style="color:#f92672">*</span> results))result {
+    <span style="color:#75715e">// 1. 创建一个二维码探测器
+</span><span style="color:#75715e"></span>    CIContext <span style="color:#f92672">*</span> context <span style="color:#f92672">=</span> [[CIContext alloc] init];
+    CIDetector <span style="color:#f92672">*</span> detector <span style="color:#f92672">=</span> [CIDetector detectorOfType:CIDetectorTypeQRCode context:context options:<span style="color:#ae81ff">@{</span>CIDetectorAccuracy : CIDetectorAccuracyHigh<span style="color:#ae81ff">}</span>];
+    <span style="color:#75715e">// 2. 识别图片特征
+</span><span style="color:#75715e"></span>    CIImage <span style="color:#f92672">*</span> ciImage <span style="color:#f92672">=</span> [CIImage imageWithCGImage:image.CGImage];
+    NSArray <span style="color:#f92672">*</span> features <span style="color:#f92672">=</span> [detector featuresInImage:ciImage];
+    NSMutableArray <span style="color:#f92672">*</span> temps <span style="color:#f92672">=</span> [NSMutableArray array];
+    UIImage  <span style="color:#f92672">*</span>tempImage <span style="color:#f92672">=</span> image;
+    
+    <span style="color:#66d9ef">for</span> (CIFeature <span style="color:#f92672">*</span> feature <span style="color:#66d9ef">in</span> features) {
+        
+        <span style="color:#66d9ef">if</span> ([feature isKindOfClass:[CIQRCodeFeature <span style="color:#66d9ef">class</span>]]) {
+            CIQRCodeFeature <span style="color:#f92672">*</span> tempFeature <span style="color:#f92672">=</span> (CIQRCodeFeature <span style="color:#f92672">*</span>)feature;
+            [temps addObject:tempFeature.messageString];
+            <span style="color:#66d9ef">if</span> (drawQRCodeFrame) {
+                tempImage <span style="color:#f92672">=</span> [self drawQRCodeBoder:tempFeature Image:tempImage];
+            }
+        }
+        <span style="color:#66d9ef">if</span> ([feature isKindOfClass:[CITextFeature <span style="color:#66d9ef">class</span>]]) {
+            CITextFeature <span style="color:#f92672">*</span> tempFeature <span style="color:#f92672">=</span> (CITextFeature <span style="color:#f92672">*</span>)feature;
+            NSLog(<span style="color:#e6db74">@&#34;%@&#34;</span>, tempFeature.subFeatures);
+        }
+    }
+    
+    <span style="color:#75715e">// 3. 音效播放
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> audioPath <span style="color:#f92672">=</span> [[NSBundle mainBundle] pathForResource:<span style="color:#e6db74">@&#34;qrcode_scan_suc.wav&#34;</span> ofType:<span style="color:#e6db74">@&#34;&#34;</span>];
+    NSData <span style="color:#f92672">*</span> audioData <span style="color:#f92672">=</span> [NSData dataWithContentsOfFile:audioPath];
+    AVAudioPlayer <span style="color:#f92672">*</span> audioPlayer <span style="color:#f92672">=</span> [[AVAudioPlayer alloc] initWithData:audioData error:nil];
+    [audioPlayer play];
+    
+    <span style="color:#75715e">// 4. 回调
+</span><span style="color:#75715e"></span>    result (tempImage, temps);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="扫描">扫描</h3>
+
+<h4 id="视图">视图</h4>
+
+<p>接口：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;UIKit/UIKit.h&gt;
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#define KSW [UIScreen mainScreen].bounds.size.width
+</span><span style="color:#75715e">#define KSH [UIScreen mainScreen].bounds.size.height
+</span><span style="color:#75715e">#define VWH 220.f
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">QRCodeScanView</span> : <span style="color:#a6e22e">UIView</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 开启扫描动作
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">beignScanAnimation</span>;
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 关闭扫描动作
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">endScanAnimation</span>;
+
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>类别：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;QRCodeScanView.h&#34;
+</span><span style="color:#75715e">#import &#34;UIImage+Extensions.h&#34;
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">QRCodeScanView</span> ()
+
+<span style="color:#75715e">/// 区域边框
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) UIImageView <span style="color:#f92672">*</span> frameImgView;
+<span style="color:#75715e">/// 扫描线
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) UIImageView <span style="color:#f92672">*</span> lineImgView;
+
+<span style="color:#66d9ef">@end</span>
+
+<span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">QRCodeScanView</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>属性：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - Lazy Loading
+</span><span style="color:#75715e"></span>
+<span style="color:#f92672">-</span> (UIImageView <span style="color:#f92672">*</span>)frameImgView {
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_frameImgView) {
+        _frameImgView <span style="color:#f92672">=</span> [[UIImageView alloc] init];
+        _frameImgView.frame <span style="color:#f92672">=</span> self.bounds;
+        NSString <span style="color:#f92672">*</span>path <span style="color:#f92672">=</span> [[NSBundle bundleForClass:self.<span style="color:#66d9ef">class</span>] pathForResource:<span style="color:#e6db74">@&#34;qrcode_border&#34;</span> ofType:<span style="color:#e6db74">@&#34;png&#34;</span>];
+        UIImage <span style="color:#f92672">*</span> frameImg <span style="color:#f92672">=</span> [UIImage imageWithContentsOfFile:path];
+        frameImg <span style="color:#f92672">=</span> [frameImg imageWithColor:UIColorFromRGBx(Theme.sharedInstance.navigationBarBackgroundColor)];
+        frameImg <span style="color:#f92672">=</span> [frameImg stretchableImageWithLeftCapWidth:(NSInteger)frameImg.size.width <span style="color:#f92672">*</span> <span style="color:#ae81ff">0.5f</span> topCapHeight:(NSInteger)frameImg.size.height <span style="color:#f92672">*</span> <span style="color:#ae81ff">0.5f</span>];
+        _frameImgView.image <span style="color:#f92672">=</span> frameImg;
+    }
+    <span style="color:#66d9ef">return</span> _frameImgView;
+}
+
+<span style="color:#f92672">-</span> (UIImageView <span style="color:#f92672">*</span>)lineImgView {
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_lineImgView) {
+        _lineImgView <span style="color:#f92672">=</span> [[UIImageView alloc] init];
+        _lineImgView.frame <span style="color:#f92672">=</span> self.bounds;
+        NSString <span style="color:#f92672">*</span>path <span style="color:#f92672">=</span> [[[NSBundle bundleForClass:self.<span style="color:#66d9ef">class</span>] resourcePath] stringByAppendingPathComponent:<span style="color:#e6db74">@&#34;qrcode_scanline.png&#34;</span>];
+        UIImage <span style="color:#f92672">*</span>lineImage <span style="color:#f92672">=</span> [UIImage imageWithContentsOfFile:path];
+        lineImage <span style="color:#f92672">=</span> [lineImage imageWithColor:UIColorFromRGBx(Theme.sharedInstance.navigationBarBackgroundColor)];
+        _lineImgView.image <span style="color:#f92672">=</span> lineImage;
+        [_lineImgView sizeToFit];
+    }
+    <span style="color:#66d9ef">return</span> _lineImgView;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>初始化：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - Init
+</span><span style="color:#75715e"></span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">instancetype</span>)initWithFrame:(CGRect)frame {
+    
+    <span style="color:#66d9ef">if</span> (self <span style="color:#f92672">=</span> [super initWithFrame:frame]) {
+        [self addSubview:self.frameImgView];
+        [self addSubview:self.lineImgView];
+        self.lineImgView.frame <span style="color:#f92672">=</span> CGRectMake(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span>self.lineImgView.frame.size.height, self.frame.size.width, self.lineImgView.frame.size.height);
+        self.clipsToBounds <span style="color:#f92672">=</span> true;
+    }
+    <span style="color:#66d9ef">return</span> self;
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)didMoveToSuperview {
+    
+    CGRect rect <span style="color:#f92672">=</span> self.frame;
+    UIColor <span style="color:#f92672">*</span> fillColor <span style="color:#f92672">=</span> [UIColor colorWithRed:<span style="color:#ae81ff">1.f</span><span style="color:#f92672">/</span><span style="color:#ae81ff">255.f</span> green:<span style="color:#ae81ff">1.f</span><span style="color:#f92672">/</span><span style="color:#ae81ff">255.f</span> blue:<span style="color:#ae81ff">1.f</span><span style="color:#f92672">/</span><span style="color:#ae81ff">255.f</span> alpha:<span style="color:#ae81ff">1.f</span>];
+    
+    CAShapeLayer<span style="color:#f92672">*</span> layerTop   <span style="color:#f92672">=</span> [[CAShapeLayer alloc] init];
+    layerTop.fillColor       <span style="color:#f92672">=</span> fillColor.CGColor;
+    layerTop.opacity         <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.5</span>;
+    layerTop.path            <span style="color:#f92672">=</span> [UIBezierPath bezierPathWithRect:CGRectMake(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, KSW, rect.origin.y)].CGPath;
+    [self.superview.layer addSublayer:layerTop];
+    
+    CAShapeLayer<span style="color:#f92672">*</span> layerLeft   <span style="color:#f92672">=</span> [[CAShapeLayer alloc] init];
+    layerLeft.fillColor       <span style="color:#f92672">=</span> fillColor.CGColor;
+    layerLeft.opacity         <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.5</span>;
+    layerLeft.path            <span style="color:#f92672">=</span> [UIBezierPath bezierPathWithRect:CGRectMake(<span style="color:#ae81ff">0</span>, rect.origin.y, (KSW<span style="color:#f92672">-</span>VWH)<span style="color:#f92672">/</span><span style="color:#ae81ff">2.0f</span>, KSH)].CGPath;
+    [self.superview.layer addSublayer:layerLeft];
+    
+    CAShapeLayer<span style="color:#f92672">*</span> layerRight   <span style="color:#f92672">=</span> [[CAShapeLayer alloc] init];
+    layerRight.fillColor       <span style="color:#f92672">=</span> fillColor.CGColor;
+    layerRight.opacity         <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.5</span>;
+    layerRight.path            <span style="color:#f92672">=</span> [UIBezierPath bezierPathWithRect:CGRectMake(KSW <span style="color:#f92672">-</span> (KSW<span style="color:#f92672">-</span>VWH)<span style="color:#f92672">/</span><span style="color:#ae81ff">2.0f</span>, rect.origin.y, (KSW<span style="color:#f92672">-</span>VWH)<span style="color:#f92672">/</span><span style="color:#ae81ff">2.0f</span>, KSH)].CGPath;
+    [self.superview.layer addSublayer:layerRight];
+    
+    CAShapeLayer<span style="color:#f92672">*</span> layerBottom   <span style="color:#f92672">=</span> [[CAShapeLayer alloc] init];
+    layerBottom.fillColor       <span style="color:#f92672">=</span> fillColor.CGColor;
+    layerBottom.opacity         <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.5</span>;
+    layerBottom.path            <span style="color:#f92672">=</span> [UIBezierPath bezierPathWithRect:CGRectMake((KSW<span style="color:#f92672">-</span>VWH)<span style="color:#f92672">/</span><span style="color:#ae81ff">2.0f</span>, rect.origin.y <span style="color:#f92672">+</span> rect.size.height, rect.size.width, KSH <span style="color:#f92672">-</span> rect.origin.y <span style="color:#f92672">-</span> rect.size.height)].CGPath;
+    [self.superview.layer addSublayer:layerBottom];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>接口实现：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - Public
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 开启扫描动作
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)beignScanAnimation {
+    
+    [UIView animateWithDuration:<span style="color:#ae81ff">1.0</span> animations:<span style="color:#f92672">^</span>{
+        [UIView setAnimationRepeatCount:MAXFLOAT];
+        self.lineImgView.frame <span style="color:#f92672">=</span> CGRectMake(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> self.frame.size.height, self.frame.size.width, self.lineImgView.frame.size.height);
+    }];
+}
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 关闭扫描动作
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)endScanAnimation {
+    
+    [self.lineImgView.layer removeAllAnimations];
+    self.lineImgView.frame <span style="color:#f92672">=</span> CGRectMake(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span>self.lineImgView.frame.size.height, self.frame.size.width, self.lineImgView.frame.size.height);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>用到的UIImage的类扩展方法：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  重新绘制图片
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param color 填充色
+</span><span style="color:#75715e"> *  @return UIImage
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (UIImage <span style="color:#f92672">*</span>)imageWithColor:(UIColor <span style="color:#f92672">*</span>)color {
+    
+    UIGraphicsBeginImageContextWithOptions(self.size, NO, self.scale);
+    CGContextRef context <span style="color:#f92672">=</span> UIGraphicsGetCurrentContext();
+    CGContextTranslateCTM(context, <span style="color:#ae81ff">0</span>, self.size.height);
+    CGContextScaleCTM(context, <span style="color:#ae81ff">1.0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1.0</span>);
+    CGContextSetBlendMode(context, kCGBlendModeNormal);
+    CGRect rect <span style="color:#f92672">=</span> CGRectMake(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, self.size.width, self.size.height);
+    CGContextClipToMask(context, rect, self.CGImage);
+    [color setFill];
+    CGContextFillRect(context, rect);
+    UIImage<span style="color:#f92672">*</span>newImage <span style="color:#f92672">=</span> UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    <span style="color:#66d9ef">return</span> newImage;
+}
+
+<span style="color:#75715e">// 获取纯色img
+</span><span style="color:#75715e"></span><span style="color:#f92672">+</span> (UIImage <span style="color:#f92672">*</span>)imageWithColor:(UIColor <span style="color:#f92672">*</span>)color {
+    <span style="color:#66d9ef">return</span> [UIImage imageWithColor:color size:(CGSize){<span style="color:#ae81ff">1.0f</span>, <span style="color:#ae81ff">1.0f</span>}];
+}
+
+<span style="color:#f92672">+</span> (UIImage <span style="color:#f92672">*</span>)imageWithColor:(UIColor <span style="color:#f92672">*</span>)color size:(CGSize)size {
+    CGRect rect <span style="color:#f92672">=</span> CGRectZero;
+    rect.size <span style="color:#f92672">=</span> size;
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context <span style="color:#f92672">=</span> UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage <span style="color:#f92672">*</span>image <span style="color:#f92672">=</span> UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    <span style="color:#66d9ef">return</span> image;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="控制器">控制器</h4>
+
+<p>匿名类别：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;QRCodeScanViewController.h&#34;
+</span><span style="color:#75715e">#import &#34;QRCodeScanView.h&#34;
+</span><span style="color:#75715e">#import &#34;QRCodeScanDevice.h&#34;
+</span><span style="color:#75715e">#import &#34;QRCodeTool.h&#34;
+</span><span style="color:#75715e">#import &lt;MobileCoreServices/MobileCoreServices.h&gt;
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">QRCodeScanViewController</span> ()
+<span style="color:#f92672">&lt;</span>UIImagePickerControllerDelegate,
+UINavigationControllerDelegate<span style="color:#f92672">&gt;</span>
+
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) QRCodeScanView <span style="color:#f92672">*</span> scanView;
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) QRCodeScanDevice <span style="color:#f92672">*</span> scanDevice;
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) UILabel <span style="color:#f92672">*</span> alertLabel;
+<span style="color:#75715e">/// 相册Controller
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) UIImagePickerController <span style="color:#f92672">*</span> imgPLController;
+
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>属性懒加载：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - Lazy Loading
+</span><span style="color:#75715e"></span>
+<span style="color:#f92672">-</span> (QRCodeScanView <span style="color:#f92672">*</span>)scanView {
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_scanView) {
+        CGRect scanViewFrame <span style="color:#f92672">=</span> CGRectMake((KSW<span style="color:#f92672">-</span>VWH)<span style="color:#f92672">/</span><span style="color:#ae81ff">2.0f</span>, (KSH<span style="color:#f92672">-</span>VWH)<span style="color:#f92672">/</span><span style="color:#ae81ff">2.0f</span><span style="color:#f92672">-</span>kNavigationBarHeight, VWH, VWH);
+        _scanView <span style="color:#f92672">=</span> [[QRCodeScanView alloc] initWithFrame:scanViewFrame];
+    }
+    <span style="color:#66d9ef">return</span> _scanView;
+}
+
+<span style="color:#f92672">-</span> (QRCodeScanDevice <span style="color:#f92672">*</span>)scanDevice {
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_scanDevice) {
+        _scanDevice <span style="color:#f92672">=</span> [[QRCodeScanDevice alloc] init];
+    }
+    <span style="color:#66d9ef">return</span> _scanDevice;
+}
+
+<span style="color:#f92672">-</span> (UILabel <span style="color:#f92672">*</span>)alertLabel {
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_alertLabel) {
+        _alertLabel <span style="color:#f92672">=</span> [[UILabel alloc] init];
+        _alertLabel.font <span style="color:#f92672">=</span> [UIFont systemFontOfSize:<span style="color:#ae81ff">14.f</span>];
+        _alertLabel.textColor <span style="color:#f92672">=</span> [UIColor whiteColor];
+        _alertLabel.text <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;将取景框对准二维码，即可自动扫描&#34;</span>;
+        [_alertLabel sizeToFit];
+        _alertLabel.center <span style="color:#f92672">=</span> CGPointMake(KSW<span style="color:#f92672">/</span><span style="color:#ae81ff">2.0f</span>, self.scanView.frame.origin.y <span style="color:#f92672">-</span> _alertLabel.bounds.size.height <span style="color:#f92672">-</span> <span style="color:#ae81ff">10</span>);
+    }
+    <span style="color:#66d9ef">return</span> _alertLabel;
+}
+
+<span style="color:#f92672">-</span> (UIImagePickerController <span style="color:#f92672">*</span>)imgPLController {
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_imgPLController) {
+        _imgPLController <span style="color:#f92672">=</span> [[UIImagePickerController alloc] init];
+        _imgPLController.sourceType <span style="color:#f92672">=</span> UIImagePickerControllerSourceTypePhotoLibrary;
+        _imgPLController.allowsEditing <span style="color:#f92672">=</span> false;
+        _imgPLController.mediaTypes <span style="color:#f92672">=</span> <span style="color:#ae81ff">@[</span>(NSString <span style="color:#f92672">*</span>)kUTTypeImage<span style="color:#ae81ff">]</span>;
+        _imgPLController.delegate <span style="color:#f92672">=</span> self;
+        NSDictionary <span style="color:#f92672">*</span> attributes <span style="color:#f92672">=</span> <span style="color:#ae81ff">@{</span>NSForegroundColorAttributeName: Theme.sharedInstance.navigationBarTitleColor,
+                                      NSFontAttributeName : [UIFont fontWithName:<span style="color:#e6db74">@&#34;PingFang-SC-Regular&#34;</span> size:<span style="color:#ae81ff">18</span>]<span style="color:#ae81ff">}</span>;
+        _imgPLController.navigationBar.titleTextAttributes <span style="color:#f92672">=</span> attributes;
+        [_imgPLController.navigationBar setTintColor:Theme.sharedInstance.navigationBarTintColor];
+        [_imgPLController.navigationBar setBackgroundImage:[UIImage imageNamed:Theme.sharedInstance.navigationBarBackgroundImageName] forBarMetrics:UIBarMetricsDefault];
+    }
+    <span style="color:#66d9ef">return</span> _imgPLController;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>生命周期：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.title <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;扫一扫&#34;</span>;
+    self.navigationItem.rightBarButtonItem <span style="color:#f92672">=</span> [[UIBarButtonItem alloc] initWithTitle:LOCALSTR(<span style="color:#e6db74">@&#34;相册&#34;</span>) style:UIBarButtonItemStylePlain target:self action:<span style="color:#66d9ef">@selector</span>(toAlbum)];
+    [self.view addSubview:self.scanView];
+    [self.scanDevice configPreViewLayerInView:self.view];
+    [self.scanDevice configOutputInterestRect:self.scanView.frame];
+    <span style="color:#66d9ef">__weak</span> <span style="color:#a6e22e">typeof</span>(self) weakSelf <span style="color:#f92672">=</span> self;
+    [self.scanDevice configWithDrawQRCodeFrame:true Result:<span style="color:#f92672">^</span>(QRCodeScanDevice <span style="color:#f92672">*</span>scanDevice, NSArray <span style="color:#f92672">*</span>results) {
+        <span style="color:#66d9ef">__strong</span> <span style="color:#66d9ef">typeof</span>(weakSelf) strongSelf <span style="color:#f92672">=</span> weakSelf;
+        [scanDevice stopScan];
+        [strongSelf.scanView endScanAnimation];
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>results.count)  <span style="color:#66d9ef">return</span> ;
+        NSString <span style="color:#f92672">*</span> resultStr <span style="color:#f92672">=</span> results[<span style="color:#ae81ff">0</span>];
+        [strongSelf handleQRCWithResultStr:resultStr];
+    }];
+    [self.view addSubview:self.alertLabel];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewWillAppear:(<span style="color:#66d9ef">BOOL</span>)animated {
+    [super viewWillAppear:animated];
+    [self.scanDevice startScan];
+    [self.scanView beignScanAnimation];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewWillDisappear:(<span style="color:#66d9ef">BOOL</span>)animated {
+    [super viewWillDisappear:animated];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewDidDisappear:(<span style="color:#66d9ef">BOOL</span>)animated {
+    [super viewDidDisappear:animated];
+    [self.scanDevice stopScan];
+    [self.scanView endScanAnimation];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>处理：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)handleQRCWithResultStr:(NSString <span style="color:#f92672">*</span>)resultStr {
+    <span style="color:#75715e">// url
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:resultStr]]) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:resultStr]];
+    }
+    <span style="color:#66d9ef">else</span> {
+        self.rm_completion(nil, resultStr);
+    }
+    NSMutableArray <span style="color:#f92672">*</span>vcs <span style="color:#f92672">=</span> [NSMutableArray arrayWithArray:self.navigationController.viewControllers];
+    [vcs removeLastObject];
+    self.navigationController.viewControllers <span style="color:#f92672">=</span> vcs.<span style="color:#66d9ef">copy</span>;
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)toAlbum {
+    [self presentViewController:self.imgPLController animated:true completion:nil];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)cameraDidFinishedPickingImage:(UIImage <span style="color:#f92672">*</span>)image { 
+    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">typeof</span>(self) weakSelf <span style="color:#f92672">=</span> self;
+    [QRCodeTool detectorWithImage:image DrawQRCodeFrame:true Result:<span style="color:#f92672">^</span>(UIImage <span style="color:#f92672">*</span>image, NSArray <span style="color:#f92672">*</span>results) {
+        <span style="color:#66d9ef">__strong</span> <span style="color:#66d9ef">typeof</span>(weakSelf) strongSelf <span style="color:#f92672">=</span> weakSelf;
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>results.count)  <span style="color:#66d9ef">return</span> ;
+        NSString <span style="color:#f92672">*</span> resultStr <span style="color:#f92672">=</span> results[<span style="color:#ae81ff">0</span>];
+        [strongSelf handleQRCWithResultStr:resultStr];
+    }];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>相机相册代理：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - UIImagePickerControllerDelegate
+</span><span style="color:#75715e"></span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)imagePickerController:(UIImagePickerController <span style="color:#f92672">*</span>)picker didFinishPickingMediaWithInfo:(NSDictionary<span style="color:#f92672">&lt;</span>NSString <span style="color:#f92672">*</span>,<span style="color:#66d9ef">id</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">*</span>)info {
+    
+    <span style="color:#75715e">/// 元数据类型
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span> mediaType <span style="color:#f92672">=</span> [info objectForKey:UIImagePickerControllerMediaType];
+    
+    <span style="color:#66d9ef">if</span> ([mediaType isEqualToString:(NSString <span style="color:#f92672">*</span>)kUTTypeImage]) {
+        
+        UIImage <span style="color:#f92672">*</span> image;
+        <span style="color:#66d9ef">if</span> (picker.allowsEditing) {  <span style="color:#75715e">// 编辑后的图片
+</span><span style="color:#75715e"></span>            image <span style="color:#f92672">=</span> [info objectForKey:UIImagePickerControllerEditedImage];
+        }
+        <span style="color:#66d9ef">else</span> { <span style="color:#75715e">// 原始图片
+</span><span style="color:#75715e"></span>            image <span style="color:#f92672">=</span> [info objectForKey:UIImagePickerControllerOriginalImage];
+        }
+        [self cameraDidFinishedPickingImage:image];
+    }
+    [picker dismissViewControllerAnimated:true completion:nil];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)imagePickerControllerDidCancel:(UIImagePickerController <span style="color:#f92672">*</span>)picker {
+    [picker dismissViewControllerAnimated:true completion:nil];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)video:(NSString <span style="color:#f92672">*</span>)videoPath didFinishSavingWithError:(NSError <span style="color:#f92672">*</span>)error contextInfo:(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)contextInfo {
+    <span style="color:#66d9ef">if</span> (error) {
+        NSLog(<span style="color:#e6db74">@&#34;保存视频发生错误:%@&#34;</span>,error.localizedDescription);
+    }
+    <span style="color:#66d9ef">else</span> {
+        NSLog(<span style="color:#e6db74">@&#34;视频保存成功&#34;</span>);
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>使用：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+QRCodeScanViewController <span style="color:#f92672">*</span> scanVC <span style="color:#f92672">=</span> [QRCodeScanViewController new];
+[self.viewController presentViewContoller:scanVC Animated:true];
+<span style="color:#f92672">~~~</span></code></pre></div>
+		</div>
+		<footer class="post__footer">
+			
+<div class="post__tags tags clearfix">
+	<svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5 0 11V3C0 1.5.8.8.8.8S1.5 0 3 0h8c1.5 0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+	<ul class="tags__list">
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/" rel="tag">二维码</a>
+		</li>
+	</ul>
+</div>
+		</footer>
+	</article>
+</main>
+
+<div class="authorbox clearfix">
+	<div class="authorbox__header">
+		<span class="authorbox__name">About sean</span>
+	</div>
+	<div class="authorbox__description">
+		a manager and coder in internet ltd.
+	</div>
+</div>
+
+<nav class="pager flex">
+	<div class="pager__item pager__item--prev">
+		<a class="pager__link" href="/post/ios%E8%A7%86%E9%A2%91%E5%BD%95%E5%88%B6%E4%B8%8E%E5%90%88%E6%88%90/" rel="prev">
+			<span class="pager__subtitle">«&thinsp;Previous</span>
+			<p class="pager__title">iOS:视频录制与合成</p>
+		</a>
+	</div>
+</nav>
+
+
+
+			</div>
+			<aside class="sidebar"><div class="widget-search widget">
+	<form class="widget-search__form" role="search" method="get" action="https://google.com/search">
+		<label>
+			<input class="widget-search__field" type="search" placeholder="SEARCH..." value="" name="q" aria-label="SEARCH...">
+		</label>
+		<input class="widget-search__submit" type="submit" value="Search">
+		<input type="hidden" name="sitesearch" value="http://sean.vip/" />
+	</form>
+</div>
+<div class="widget-recent widget">
+	<h4 class="widget__title">Recent Posts</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item"><a class="widget__link" href="/post/ios%E4%BA%8C%E7%BB%B4%E7%A0%81/">iOS:二维码</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/ios%E8%A7%86%E9%A2%91%E5%BD%95%E5%88%B6%E4%B8%8E%E5%90%88%E6%88%90/">iOS:视频录制与合成</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/ios%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9B%B8%E6%9C%BA/">iOS:自定义相机</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/ios%E6%95%B0%E6%8D%AE%E5%BA%93/">iOS:持久化(数据库)</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/ios%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/">iOS:持久化(数据存储)</a></li>
+		</ul>
+	</div>
+</div>
+<div class="widget-categories widget">
+	<h4 class="widget__title">Categories</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item">
+				<a class="widget__link" href="/categories/ios/">iOS</a>
+			</li>
+		</ul>
+	</div>
+</div>
+<div class="widget-taglist widget">
+	<h4 class="widget__title">Tags</h4>
+	<div class="widget__content">
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="二维码">二维码</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AD%98%E5%82%A8/" title="存储">存储</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AE%89%E5%85%A8/" title="安全">安全</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" title="数据库">数据库</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E7%9B%B8%E6%9C%BA/" title="相机">相机</a>
+	</div>
+</div>
+<div class="widget-social widget">
+	<h4 class="widget-social__title widget__title">Social</h4>
+	<div class="widget-social__content widget__content">
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="GitHub" rel="noopener noreferrer" href="https://github.com/sean-tech" target="_blank">
+				<svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0c-106.1 0-192 85.8-192 191.7 0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2 0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8 0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7 0 0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4 0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5 0 25.6-.2 46.3-.2 52.6 0 5.1 3.5 11.1 13.2 9.2 76.2-25.5 131.2-97.3 131.2-182 0-105.9-86-191.7-192-191.7z"/></svg>
+				<span>GitHub</span>
+			</a>
+		</div>
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="Email" href="mailto:sean.vip.contact@foxmail.com">
+				<svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16-256-16h-16-384-16zm347 16-139 92.5-139-92.5zm-148 125.5 9 5.5 9-5.5 167-111.5v210h-352v-210z"/></svg>
+				<span>sean.vip.contact@foxmail.com</span>
+			</a>
+		</div>
+
+		
+	</div>
+</div>
+</aside>
+		</div>
+		<footer class="footer">
+	<div class="container footer__container flex">
+		
+<div class="footer__links">
+	<a class="footer__link" href="/about/">About Me</a>
+</div>
+		<div class="footer__copyright">
+			&copy; 2020 John Doe.
+			<span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span>
+		</div>
+	</div>
+</footer>
+	</div>
+<script async defer src="/js/menu.js"></script>
+<script src="/js/custom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async></script>
+</body>
+</html>
