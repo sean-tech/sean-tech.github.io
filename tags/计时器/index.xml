@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>计时器 on sean</title>
+    <link>http://sean.vip/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/</link>
+    <description>Recent content in 计时器 on sean</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 12 Mar 2020 14:05:55 +0800</lastBuildDate>
+    
+	<atom:link href="http://sean.vip/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>iOS:计时器</title>
+      <link>http://sean.vip/post/ios%E8%AE%A1%E6%97%B6%E5%99%A8/</link>
+      <pubDate>Thu, 12 Mar 2020 14:05:55 +0800</pubDate>
+      
+      <guid>http://sean.vip/post/ios%E8%AE%A1%E6%97%B6%E5%99%A8/</guid>
+      <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;1S的误差对计算机来说都是天文数字&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

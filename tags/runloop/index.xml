@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>RunLoop on sean</title>
+    <link>http://sean.vip/tags/runloop/</link>
+    <description>Recent content in RunLoop on sean</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 28 Sep 2016 13:11:02 +0800</lastBuildDate>
+    
+	<atom:link href="http://sean.vip/tags/runloop/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Objective-C:RunLoop(应用)</title>
+      <link>http://sean.vip/post/ocrunloop2/</link>
+      <pubDate>Wed, 28 Sep 2016 13:11:02 +0800</pubDate>
+      
+      <guid>http://sean.vip/post/ocrunloop2/</guid>
+      <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;对RunLoop的知行合一;--RunLoop&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Objective-C:RunLoop(原理)</title>
+      <link>http://sean.vip/post/ocrunloop/</link>
+      <pubDate>Tue, 20 Sep 2016 13:10:21 +0800</pubDate>
+      
+      <guid>http://sean.vip/post/ocrunloop/</guid>
+      <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;while(true) printf(“I Like You”);--RunLoop&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

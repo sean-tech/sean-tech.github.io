@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Objective-C:RunLoop(应用) - sean</title>
+	<script>(function(d,e){d[e]=d[e].replace("no-js","js");})(document.documentElement,"className");</script>
+	<meta name="description" content="Objective-C RunLoop">
+		<meta property="og:title" content="Objective-C:RunLoop(应用)" />
+<meta property="og:description" content="Objective-C RunLoop" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://sean.vip/post/ocrunloop2/" />
+<meta property="article:published_time" content="2016-09-28T13:11:02&#43;08:00"/>
+<meta property="article:modified_time" content="2016-09-28T13:11:02&#43;08:00"/>
+
+		
+<meta itemprop="name" content="Objective-C:RunLoop(应用)">
+<meta itemprop="description" content="Objective-C RunLoop">
+
+
+<meta itemprop="datePublished" content="2016-09-28T13:11:02&#43;08:00" />
+<meta itemprop="dateModified" content="2016-09-28T13:11:02&#43;08:00" />
+<meta itemprop="wordCount" content="2093">
+
+
+
+<meta itemprop="keywords" content="objc,RunLoop," />
+
+		<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Objective-C:RunLoop(应用)"/>
+<meta name="twitter:description" content="Objective-C RunLoop"/>
+
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<link rel="stylesheet" href="/css/custom.css">
+	<link rel="shortcut icon" href="/favicon.ico">
+		
+</head>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container header__container">
+		
+	<div class="logo">
+		<a class="logo__link" href="/" title="sean" rel="home">
+			<div class="logo__title">sean</div>
+			<div class="logo__tagline">sean&#39;s zone</div>
+		</a>
+	</div>
+		<div class="divider"></div>
+	</div>
+</header>
+
+		<div class="wrapper flex">
+			<div class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">Objective-C:RunLoop(应用)</h1>
+			<div class="post__meta meta">
+<div class="meta__item-datetime meta__item">
+	<svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class="meta__text" datetime="2016-09-28T13:11:02&#43;08:00">2016-09-28</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2l1 2h8v11h-16v-13z"/></svg><span class="meta__text"><a class="meta__link" href="/categories/ios/" rel="category">iOS</a>
+	</span>
+</div></div>
+		</header>
+<div class="post__toc toc">
+	<div class="toc__title">Page content</div>
+	<div class="toc__menu">
+		<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#线程常驻">线程常驻</a>
+<ul>
+<li><a href="#说明">说明</a></li>
+<li><a href="#afn常驻线程的实现">AFN常驻线程的实现</a></li>
+<li><a href="#接口">接口</a></li>
+<li><a href="#实现">实现</a></li>
+<li><a href="#使用">使用</a></li>
+</ul></li>
+<li><a href="#线程依赖">线程依赖</a>
+<ul>
+<li><a href="#使用gcd方式">使用GCD方式</a></li>
+<li><a href="#使用nsthread方式">使用NSThread方式</a></li>
+</ul></li>
+<li><a href="#流畅度优化">流畅度优化</a>
+<ul>
+<li><a href="#普通加载">普通加载</a></li>
+<li><a href="#使用runloop拆分任务">使用RunLoop拆分任务</a></li>
+<li><a href="#cell内部内存优化">Cell内部内存优化</a></li>
+</ul></li>
+<li><a href="#主线程卡顿监测">主线程卡顿监测</a>
+<ul>
+<li><a href="#接口-1">接口</a></li>
+<li><a href="#类别">类别</a></li>
+<li><a href="#实现-1">实现</a></li>
+<li><a href="#使用-1">使用</a></li>
+</ul></li>
+<li><a href="#让闪退的应用起死回生并获取闪退信息">让闪退的应用起死回生并获取闪退信息</a>
+<ul>
+<li><a href="#接口-2">接口</a></li>
+<li><a href="#类内部常变量定义">类内部常变量定义</a></li>
+<li><a href="#实现-2">实现</a></li>
+<li><a href="#使用-2">使用</a></li>
+</ul></li>
+<li><a href="#uitableview滑动性能影响因素">UITableView滑动性能影响因素</a>
+<ul>
+<li><a href="#在主线程中执行耗时操作">在主线程中执行耗时操作</a></li>
+<li><a href="#动态计算cell高度运算量过大">动态计算Cell高度运算量过大</a></li>
+<li><a href="#界面汇总透明背景色视图过多">界面汇总透明背景色视图过多</a></li>
+<li><a href="#主线程runloop切换到uitrackingrunloopmode时-视图有过多的修改">主线程RunLoop切换到UITrackingRunLoopMode时，视图有过多的修改</a></li>
+</ul></li>
+<li><a href="#结语">结语</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+	</div>
+</div>
+<div class="content post__content clearfix">
+			<p style="font-family:verdana;font-size:120%;color:gray" ,="" align="left">对RunLoop的知行合一;--RunLoop</p>
+
+<h3 id="线程常驻">线程常驻</h3>
+
+<h4 id="说明">说明</h4>
+
+<p>线程的五大状态分别是:新建状态、就绪状态、运行状态、阻塞状态、死亡状态。</p>
+
+<p>我们通常创建的线程即使通过全局变量持有，当任务执行完毕之后，尽管内存中还存在这个线程，但实际上这个线程已经处于死亡状态了，如果有高频操作，就需要重复频繁开启新的线程。</p>
+
+<p>线程的开启和销毁是一个损耗CPU性能的操作，在特定的需求中，如音频录制，视频录制的合成，语音对讲等，频繁的开关线程对应用的性能损耗很大，这时，我们可以借用RunLoop实现一个常驻的后台服务线程，监听这些操作，有任务则唤醒执行，无任务则休眠节省资源。</p>
+
+<h4 id="afn常驻线程的实现">AFN常驻线程的实现</h4>
+
+<p>AFN中AFURLConnectionOperation是基于NSURLConnection构建的，其希望能够在后台线程来接收Delegate的回调。为此AFN创建了一个线程,然后在里面开启了一个RunLoop，然后添加item：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">+</span> (<span style="color:#66d9ef">void</span>)networkRequestThreadEntryPoint:(<span style="color:#66d9ef">id</span>)__unused object {
+<span style="color:#66d9ef">@autoreleasepool</span> {
+    [[NSThread currentThread] setName:<span style="color:#e6db74">@&#34;AFNetworking&#34;</span>];
+    NSRunLoop <span style="color:#f92672">*</span>runLoop <span style="color:#f92672">=</span> [NSRunLoop currentRunLoop];
+    [runLoop addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
+    [runLoop run];
+}
+}
+<span style="color:#f92672">+</span> (NSThread <span style="color:#f92672">*</span>)networkRequestThread {
+    <span style="color:#66d9ef">static</span> NSThread <span style="color:#f92672">*</span>_networkRequestThread <span style="color:#f92672">=</span> nil;
+    <span style="color:#66d9ef">static</span> dispatch_once_t oncePredicate;
+    dispatch_once(<span style="color:#f92672">&amp;</span>oncePredicate, <span style="color:#f92672">^</span>{ 
+        _networkRequestThread <span style="color:#f92672">=</span> [[NSThread alloc] initWithTarget:self selector:<span style="color:#66d9ef">@selector</span>(networkRequestThreadEntryPoint:) object:nil];
+        [_networkRequestThread start];
+    });
+    <span style="color:#66d9ef">return</span> _networkRequestThread;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>这里的port仅仅是为了让RunLoop不退出而添加的item，如果需要使用这个port，调用者则要持有这个port，在外部线程通过port发送消息到这个Loop内部。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)start {
+    [self.lock lock];
+    <span style="color:#66d9ef">if</span> ([self isCancelled]) {
+        [self performSelector:<span style="color:#66d9ef">@selector</span>(cancelConnection) onThread:[[self <span style="color:#66d9ef">class</span>] networkRequestThread] withObject:nil waitUntilDone:NO modes:[self.runLoopModes allObjects]];
+    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> ([self isReady]) {
+        self.state <span style="color:#f92672">=</span> AFOperationExecutingState;
+        [self performSelector:<span style="color:#66d9ef">@selector</span>(operationDidStart) onThread:[[self <span style="color:#66d9ef">class</span>] networkRequestThread] withObject:nil waitUntilDone:NO modes:[self.runLoopModes allObjects]];
+    }
+    [self.lock unlock];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>在需要这个线程执行任务的时候，通过[NSObject performSelector:onThread:..]将任务扔到这个线程的RunLoop中来执行。</p>
+
+<h4 id="接口">接口</h4>
+
+<p>仿照AFN的服务线程，我们提供常驻线程的一个单例接口：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">SeanThread</span> : <span style="color:#a6e22e">NSThread</span>
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * videoRecord线程获取方法
+</span><span style="color:#75715e"> */</span>
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">videoRecordThread</span>;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="实现">实现</h4>
+
+<p>在入口方法中开启RunLoop，添加Source避免RunLoop没有item退出：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">SeanThread</span>
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * videoRecord线程获取方法
+</span><span style="color:#75715e"> */</span>
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">videoRecordThread</span> {
+    <span style="color:#66d9ef">static</span> SeanThread <span style="color:#f92672">*</span> _instance;
+    <span style="color:#66d9ef">static</span> dispatch_once_t onceToken;
+    dispatch_once(<span style="color:#f92672">&amp;</span>onceToken, <span style="color:#f92672">^</span>{
+        _instance <span style="color:#f92672">=</span> [[self alloc] initWithTarget:self selector:<span style="color:#66d9ef">@selector</span>(videoRecordThreadEntryPoint:) object:nil];
+        [_instance setName:<span style="color:#e6db74">@&#34;VideoRecordThread&#34;</span>];
+        [_instance start];
+    });
+    <span style="color:#66d9ef">return</span> _instance;
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * videoRecord线程入口方法
+</span><span style="color:#75715e"> */</span>
++ (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">videoRecordThreadEntryPoint:</span>(<span style="color:#66d9ef">id</span>)__unused object {
+    <span style="color:#66d9ef">@autoreleasepool</span> {
+        NSLog(<span style="color:#e6db74">@&#34;子线程进入&#34;</span>);
+        NSLog(<span style="color:#e6db74">@&#34;current thread : %@&#34;</span>, [NSThread currentThread]);
+        
+        NSRunLoop <span style="color:#f92672">*</span> currentRunloop <span style="color:#f92672">=</span> [NSRunLoop currentRunLoop];
+        [currentRunloop addPort:[NSMachPort port] forMode:NSRunLoopCommonModes];<span style="color:#75715e">// runloop没有mode将会退出
+</span><span style="color:#75715e"></span>        [currentRunloop run];
+        NSLog(<span style="color:#e6db74">@&#34;runloop run after&#34;</span>);<span style="color:#75715e">// runlopp开启后这里将永不执行
+</span><span style="color:#75715e"></span>    }
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)dealloc {
+    NSLog(<span style="color:#e6db74">@&#34;%s&#34;</span>, __func__);
+}
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="使用">使用</h4>
+
+<p>使用这个常驻线程执行任务：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)touchesBegan:(NSSet<span style="color:#f92672">&lt;</span>UITouch <span style="color:#f92672">*&gt;</span> <span style="color:#f92672">*</span>)touches withEvent:(UIEvent <span style="color:#f92672">*</span>)event {
+    [super touchesBegan:touches withEvent:event];
+    
+    [self performSelector:<span style="color:#66d9ef">@selector</span>(doSomethingInBackgroundThread) onThread:[SeanThread videoRecordThread] withObject:nil waitUntilDone:false];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)doSomethingInBackgroundThread {
+    <span style="color:#66d9ef">@autoreleasepool</span> {
+        NSLog(<span style="color:#e6db74">@&#34;do something begin&#34;</span>);
+        NSLog(<span style="color:#e6db74">@&#34;do something doing&#34;</span>);
+        NSLog(<span style="color:#e6db74">@&#34;do something end&#34;</span>);
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="线程依赖">线程依赖</h3>
+
+<p>给两个线程添加依赖性有多种方式，使用RunLoop是其中的一种。</p>
+
+<h4 id="使用gcd方式">使用GCD方式</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">ThreadViewController</span> ()
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">assign</span>) <span style="color:#66d9ef">BOOL</span> runLoopThreadDidFinishFlag;
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) NSThread <span style="color:#f92672">*</span> myThread;
+<span style="color:#66d9ef">@end</span>
+  
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)touchesBegan:(NSSet<span style="color:#f92672">&lt;</span>UITouch <span style="color:#f92672">*&gt;</span> <span style="color:#f92672">*</span>)touches withEvent:(UIEvent <span style="color:#f92672">*</span>)event {
+    <span style="color:#75715e">/// 线程依赖
+</span><span style="color:#75715e"></span>    [self runLoopAddDependance];
+}
+<span style="color:#75715e">#pragma mark - 线程依赖
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)runLoopAddDependance {
+    self.runLoopThreadDidFinishFlag <span style="color:#f92672">=</span> NO;
+    NSLog(<span style="color:#e6db74">@&#34;Start a New Run Loop Thread&#34;</span>);
+    NSThread <span style="color:#f92672">*</span>runLoopThread <span style="color:#f92672">=</span> [[NSThread alloc] initWithTarget:self selector:<span style="color:#66d9ef">@selector</span>(handleRunLoopThreadTask) object:nil];
+    [runLoopThread start];
+    
+    NSLog(<span style="color:#e6db74">@&#34;Exit handleRunLoopThreadButtonTouchUpInside&#34;</span>);
+    dispatch_async(dispatch_get_global_queue(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>), <span style="color:#f92672">^</span>{
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_runLoopThreadDidFinishFlag) {
+            self.myThread <span style="color:#f92672">=</span> [NSThread currentThread];
+            NSLog(<span style="color:#e6db74">@&#34;%@&#34;</span>, self.myThread);
+            NSLog(<span style="color:#e6db74">@&#34;Begin RunLoop&#34;</span>);
+            NSRunLoop <span style="color:#f92672">*</span>runLoop <span style="color:#f92672">=</span> [NSRunLoop currentRunLoop];
+            NSPort <span style="color:#f92672">*</span>myPort <span style="color:#f92672">=</span> [NSPort port];
+            [runLoop addPort:myPort forMode:NSDefaultRunLoopMode];
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+            NSLog(<span style="color:#e6db74">@&#34;End RunLoop&#34;</span>);
+            [self.myThread cancel];
+            self.myThread <span style="color:#f92672">=</span> nil;
+        }
+    });
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)handleRunLoopThreadTask {
+    NSLog(<span style="color:#e6db74">@&#34;Enter Run Loop Thread&#34;</span>);
+    <span style="color:#66d9ef">for</span> (NSInteger i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">5</span>; i <span style="color:#f92672">++</span>) {
+        NSLog(<span style="color:#e6db74">@&#34;In Run Loop Thread, count = %ld&#34;</span>, i);
+        sleep(<span style="color:#ae81ff">1</span>);
+    }
+    _runLoopThreadDidFinishFlag <span style="color:#f92672">=</span> YES;
+    NSLog(<span style="color:#e6db74">@&#34;Exit Normal Thread&#34;</span>);
+    
+    [self performSelector:<span style="color:#66d9ef">@selector</span>(tryOnMyThread) onThread:self.myThread withObject:nil waitUntilDone:NO];
+    NSLog(<span style="color:#e6db74">@&#34;Exit Run Loop Thread&#34;</span>);
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)tryOnMyThread {
+    NSLog(<span style="color:#e6db74">@&#34;tryOnMyThread&#34;</span>);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="使用nsthread方式">使用NSThread方式</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)touchesBegan:(NSSet<span style="color:#f92672">&lt;</span>UITouch <span style="color:#f92672">*&gt;</span> <span style="color:#f92672">*</span>)touches withEvent:(UIEvent <span style="color:#f92672">*</span>)event {
+    _runLoopThreadDidFinishFlag <span style="color:#f92672">=</span> NO;
+    NSThread <span style="color:#f92672">*</span>runLoopThread <span style="color:#f92672">=</span> [[NSThread alloc] initWithTarget:self selector:<span style="color:#66d9ef">@selector</span>(handleRunLoopThreadTask) object:nil];
+    [runLoopThread start];
+    
+    self.myThread <span style="color:#f92672">=</span> [[NSThread alloc] initWithTarget:self selector:<span style="color:#66d9ef">@selector</span>(myThreadEntryPoint) object:nil];
+    [self.myThread start];
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)myThreadEntryPoint {
+    <span style="color:#66d9ef">@autoreleasepool</span> {
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_runLoopThreadDidFinishFlag) {
+            NSLog(<span style="color:#e6db74">@&#34;Begin RunLoop&#34;</span>);
+            NSRunLoop <span style="color:#f92672">*</span>runLoop <span style="color:#f92672">=</span> [NSRunLoop currentRunLoop];
+            NSPort <span style="color:#f92672">*</span>myPort <span style="color:#f92672">=</span> [NSPort port];
+            [runLoop addPort:myPort forMode:NSDefaultRunLoopMode];
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+            NSLog(<span style="color:#e6db74">@&#34;End RunLoop&#34;</span>);
+            [self.myThread cancel];
+            self.myThread <span style="color:#f92672">=</span> nil;
+        }
+    }
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)handleRunLoopThreadTask {
+    NSLog(<span style="color:#e6db74">@&#34;Enter Run Loop Thread&#34;</span>);
+    <span style="color:#66d9ef">for</span> (NSInteger i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">5</span>; i <span style="color:#f92672">++</span>) {
+        NSLog(<span style="color:#e6db74">@&#34;In Run Loop Thread, count = %ld&#34;</span>, i);
+        sleep(<span style="color:#ae81ff">1</span>);
+    }
+    _runLoopThreadDidFinishFlag <span style="color:#f92672">=</span> YES;
+    NSLog(<span style="color:#e6db74">@&#34;Exit Normal Thread&#34;</span>);
+    [self performSelector:<span style="color:#66d9ef">@selector</span>(tryOnMyThread) onThread:self.myThread withObject:nil waitUntilDone:NO];
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)tryOnMyThread {
+    NSLog(<span style="color:#e6db74">@&#34;tryOnMyThread&#34;</span>);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="流畅度优化">流畅度优化</h3>
+
+<p>场景：UITableView，Cell数量1000，每个Cell含有3个imageView，每个imageView均本地加载高清大图（主线程中存在不可避免的耗时操作）。</p>
+
+<p>分析：卡顿原因产生的原因，在于一个Runloop周期需要绘制显示到屏幕上的所有的点（或者有变化的点），此场景下为一个周期绘制多张高清图。</p>
+
+<p>优化：</p>
+
+<ol>
+<li>为imageView设置image,是在UITrackingRunLoopMode中进行的,在滑动的Mode下更新UI操作是第一个问题点，这里可以通过更改设置image的Mode避免与手势滑动抢时间：[imageView performSelector:@selector(setImage:) withObject:image afterDelay:0 inModes:@[NSDefaultRunLoopMode]]；</li>
+<li>将每张高清图片的绘制（一个操作单元）派发给一个Runloop周期，每个Runloop周期绘制一张高清图片（执行一个操作单元）。由于Runloop循环非常迅速，所以图片的额加载速度不受影响。</li>
+</ol>
+
+<h4 id="普通加载">普通加载</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (UITableViewCell <span style="color:#f92672">*</span>)tableView:(UITableView <span style="color:#f92672">*</span>)tableView cellForRowAtIndexPath:(NSIndexPath <span style="color:#f92672">*</span>)indexPath {
+    
+    TableViewCell <span style="color:#f92672">*</span> cell <span style="color:#f92672">=</span> [tableView dequeueReusableCellWithIdentifier:<span style="color:#e6db74">@&#34;TableViewCell&#34;</span>];
+    
+    NSString <span style="color:#f92672">*</span>path1 <span style="color:#f92672">=</span> [[NSBundle mainBundle] pathForResource:<span style="color:#e6db74">@&#34;spaceship&#34;</span> ofType:<span style="color:#e6db74">@&#34;png&#34;</span>];
+    UIImage <span style="color:#f92672">*</span>image1 <span style="color:#f92672">=</span> [UIImage imageWithContentsOfFile:path1];
+    cell.image1 <span style="color:#f92672">=</span> image1;
+    cell.title1 <span style="color:#f92672">=</span> [<span style="color:#ae81ff">@(</span>indexPath.row<span style="color:#ae81ff">)</span>.description stringByAppendingString:<span style="color:#e6db74">@&#34;First&#34;</span>];
+    NSString <span style="color:#f92672">*</span>path2 <span style="color:#f92672">=</span> [[NSBundle mainBundle] pathForResource:<span style="color:#e6db74">@&#34;spaceship&#34;</span> ofType:<span style="color:#e6db74">@&#34;png&#34;</span>];
+    UIImage <span style="color:#f92672">*</span>image2 <span style="color:#f92672">=</span> [UIImage imageWithContentsOfFile:path2];
+    cell.image2 <span style="color:#f92672">=</span> image2;
+    cell.title2 <span style="color:#f92672">=</span> [<span style="color:#ae81ff">@(</span>indexPath.row<span style="color:#ae81ff">)</span>.description stringByAppendingString:<span style="color:#e6db74">@&#34;Second&#34;</span>];
+    NSString <span style="color:#f92672">*</span>path3 <span style="color:#f92672">=</span> [[NSBundle mainBundle] pathForResource:<span style="color:#e6db74">@&#34;spaceship&#34;</span> ofType:<span style="color:#e6db74">@&#34;png&#34;</span>];
+    UIImage <span style="color:#f92672">*</span>image3 <span style="color:#f92672">=</span> [UIImage imageWithContentsOfFile:path3];
+    cell.image3 <span style="color:#f92672">=</span> image3;
+    cell.title3 <span style="color:#f92672">=</span> [<span style="color:#ae81ff">@(</span>indexPath.row<span style="color:#ae81ff">)</span>.description stringByAppendingString:<span style="color:#e6db74">@&#34;Third&#34;</span>];
+    
+    <span style="color:#66d9ef">return</span> cell;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="使用runloop拆分任务">使用RunLoop拆分任务</h4>
+
+<p>先看匿名类别：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/// 任务的Block定义
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">BOOL</span>(<span style="color:#f92672">^</span>TaskBlock)(<span style="color:#66d9ef">void</span>);
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">ViewController</span> ()
+<span style="color:#f92672">&lt;</span>UITableViewDelegate,
+UITableViewDataSource<span style="color:#f92672">&gt;</span>
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) UITableView <span style="color:#f92672">*</span> tableView;
+<span style="color:#75715e">/// 用于唤醒RunLoop的timer
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) NSTimer <span style="color:#f92672">*</span> timer;
+<span style="color:#75715e">/// 任务存储
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) NSMutableArray <span style="color:#f92672">*</span> tasks;
+<span style="color:#75715e">/// 最大任务数
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">assign</span>) NSInteger maxTaskCount;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>属性懒加载：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (UITableView <span style="color:#f92672">*</span>)tableView {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_tableView) {
+        _tableView <span style="color:#f92672">=</span> [UITableView new];
+        _tableView.backgroundColor <span style="color:#f92672">=</span> [UIColor whiteColor];
+        _tableView.frame <span style="color:#f92672">=</span> (CGRect){<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, KSWIDTH, KSHEIGHT};
+        _tableView.delegate <span style="color:#f92672">=</span> self;
+        _tableView.dataSource <span style="color:#f92672">=</span> self;
+        [_tableView registerClass:[TableViewCell <span style="color:#66d9ef">class</span>] forCellReuseIdentifier:<span style="color:#e6db74">@&#34;TableViewCell&#34;</span>];
+        _tableView.rowHeight <span style="color:#f92672">=</span> <span style="color:#ae81ff">100.f</span>;
+        [self.view addSubview:_tableView];
+    }
+    <span style="color:#66d9ef">return</span> _tableView;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>添加RunLoop观察者：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - RunLoopObserver
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * NSTimer保证runloop高效监听
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)keepRunloopAwake {
+    
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 添加RunloopObserver
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)addRunloopObserver {
+    
+    <span style="color:#75715e">/// 获取当前Runloop
+</span><span style="color:#75715e"></span>    CFRunLoopRef runloop <span style="color:#f92672">=</span> CFRunLoopGetCurrent();
+    <span style="color:#75715e">/// 定义一个上下文
+</span><span style="color:#75715e"></span>    CFRunLoopObserverContext observerContext <span style="color:#f92672">=</span> {
+        <span style="color:#ae81ff">0</span>,
+        (<span style="color:#66d9ef">__bridge</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)self,
+        <span style="color:#f92672">&amp;</span>CFRetain,
+        <span style="color:#f92672">&amp;</span>CFRelease,
+        NULL
+    };
+    <span style="color:#75715e">/// 创建一个观察者
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">static</span> CFRunLoopObserverRef observer;
+    observer <span style="color:#f92672">=</span> CFRunLoopObserverCreate(NULL, kCFRunLoopBeforeWaiting, true, NSIntegerMax <span style="color:#f92672">-</span> <span style="color:#ae81ff">999</span>, <span style="color:#f92672">&amp;</span>RunloopObserverCallback, <span style="color:#f92672">&amp;</span>observerContext);
+    <span style="color:#75715e">/// 添加观察者到当前的Runloop
+</span><span style="color:#75715e"></span>    CFRunLoopAddObserver(runloop, observer, kCFRunLoopDefaultMode);
+    <span style="color:#75715e">/// Release
+</span><span style="color:#75715e"></span>    CFRelease(observer);
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * RunloopObserver监听回调
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> RunloopObserverCallback(CFRunLoopObserverRef observer, CFRunLoopActivity activity, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>info) {
+    ViewController <span style="color:#f92672">*</span> vc <span style="color:#f92672">=</span> (<span style="color:#66d9ef">__bridge</span> ViewController <span style="color:#f92672">*</span>)info;
+    
+    <span style="color:#75715e">/// 回调频繁调用，添加条件判断拦截不必要的执行,以提高性能
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (vc.tasks.count <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>) {
+        <span style="color:#66d9ef">return</span>;
+    }
+    <span style="color:#66d9ef">BOOL</span> isCurrentIndexPath <span style="color:#f92672">=</span> false;
+    <span style="color:#66d9ef">while</span> (<span style="color:#f92672">!</span>isCurrentIndexPath <span style="color:#f92672">&amp;&amp;</span> vc.tasks.count <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
+        TaskBlock task <span style="color:#f92672">=</span> vc.tasks.firstObject;
+        isCurrentIndexPath <span style="color:#f92672">=</span> task();
+        [vc.tasks removeObjectAtIndex:<span style="color:#ae81ff">0</span>];
+    }
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 添加要分发执行的任务到数组
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)addTask:(TaskBlock)taskBlock {
+    [self.tasks addObject:taskBlock];
+    <span style="color:#75715e">/// 移除不需要执行的任务（只绘制展示到屏幕上的最新的30张图片）
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (self.tasks.count <span style="color:#f92672">&gt;</span> self.maxTaskCount) {
+        [self.tasks removeObjectAtIndex:<span style="color:#ae81ff">0</span>];
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>TableView代理回调：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (NSInteger)tableView:(UITableView <span style="color:#f92672">*</span>)tableView numberOfRowsInSection:(NSInteger)section { 
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1000</span>;
+}
+<span style="color:#f92672">-</span> (UITableViewCell <span style="color:#f92672">*</span>)tableView:(UITableView <span style="color:#f92672">*</span>)tableView cellForRowAtIndexPath:(NSIndexPath <span style="color:#f92672">*</span>)indexPath {
+    TableViewCell <span style="color:#f92672">*</span> cell <span style="color:#f92672">=</span> [tableView dequeueReusableCellWithIdentifier:<span style="color:#e6db74">@&#34;TableViewCell&#34;</span>];
+    cell.currentIndexPath <span style="color:#f92672">=</span> indexPath;
+    [self addTask:<span style="color:#f92672">^</span><span style="color:#66d9ef">BOOL</span>{
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>[cell.currentIndexPath isEqual:indexPath]) {
+            <span style="color:#66d9ef">return</span> false;
+        }
+        NSString <span style="color:#f92672">*</span>path1 <span style="color:#f92672">=</span> [[NSBundle mainBundle] pathForResource:<span style="color:#e6db74">@&#34;spaceship&#34;</span> ofType:<span style="color:#e6db74">@&#34;png&#34;</span>];
+        UIImage <span style="color:#f92672">*</span>image1 <span style="color:#f92672">=</span> [UIImage imageWithContentsOfFile:path1];
+        [cell performSelector:<span style="color:#66d9ef">@selector</span>(setImage1:) withObject:image1 afterDelay:<span style="color:#ae81ff">0</span> inModes:<span style="color:#ae81ff">@[</span>NSDefaultRunLoopMode<span style="color:#ae81ff">]</span>];
+        <span style="color:#75715e">//cell.image1 = image1;
+</span><span style="color:#75715e"></span>        cell.title1 <span style="color:#f92672">=</span> [<span style="color:#ae81ff">@(</span>indexPath.row<span style="color:#ae81ff">)</span>.description stringByAppendingString:<span style="color:#e6db74">@&#34;First&#34;</span>];
+        <span style="color:#66d9ef">return</span> true;
+    }];
+    [self addTask:<span style="color:#f92672">^</span><span style="color:#66d9ef">BOOL</span>{
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>[cell.currentIndexPath isEqual:indexPath]) {
+            <span style="color:#66d9ef">return</span> false;
+        }
+        NSString <span style="color:#f92672">*</span>path2 <span style="color:#f92672">=</span> [[NSBundle mainBundle] pathForResource:<span style="color:#e6db74">@&#34;spaceship&#34;</span> ofType:<span style="color:#e6db74">@&#34;png&#34;</span>];
+        UIImage <span style="color:#f92672">*</span>image2 <span style="color:#f92672">=</span> [UIImage imageWithContentsOfFile:path2];
+        [cell performSelector:<span style="color:#66d9ef">@selector</span>(setImage2:) withObject:image2 afterDelay:<span style="color:#ae81ff">0</span> inModes:<span style="color:#ae81ff">@[</span>NSDefaultRunLoopMode<span style="color:#ae81ff">]</span>];
+        <span style="color:#75715e">//cell.image2 = image2;
+</span><span style="color:#75715e"></span>        cell.title2 <span style="color:#f92672">=</span> [<span style="color:#ae81ff">@(</span>indexPath.row<span style="color:#ae81ff">)</span>.description stringByAppendingString:<span style="color:#e6db74">@&#34;Second&#34;</span>];
+        <span style="color:#66d9ef">return</span> true;
+    }];
+    [self addTask:<span style="color:#f92672">^</span><span style="color:#66d9ef">BOOL</span>{
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>[cell.currentIndexPath isEqual:indexPath]) {
+            <span style="color:#66d9ef">return</span> false;
+        }
+        NSString <span style="color:#f92672">*</span>path3 <span style="color:#f92672">=</span> [[NSBundle mainBundle] pathForResource:<span style="color:#e6db74">@&#34;spaceship&#34;</span> ofType:<span style="color:#e6db74">@&#34;png&#34;</span>];
+        UIImage <span style="color:#f92672">*</span>image3 <span style="color:#f92672">=</span> [UIImage imageWithContentsOfFile:path3];
+        [cell performSelector:<span style="color:#66d9ef">@selector</span>(setImage3:) withObject:image3 afterDelay:<span style="color:#ae81ff">0</span> inModes:<span style="color:#ae81ff">@[</span>NSDefaultRunLoopMode<span style="color:#ae81ff">]</span>];
+        <span style="color:#75715e">//cell.image3 = image3;
+</span><span style="color:#75715e"></span>        cell.title3 <span style="color:#f92672">=</span> [<span style="color:#ae81ff">@(</span>indexPath.row<span style="color:#ae81ff">)</span>.description stringByAppendingString:<span style="color:#e6db74">@&#34;Third&#34;</span>];
+        <span style="color:#66d9ef">return</span> true;
+    }];
+    
+    <span style="color:#66d9ef">return</span> cell;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>视图加载运行：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.timer <span style="color:#f92672">=</span> [NSTimer scheduledTimerWithTimeInterval:<span style="color:#ae81ff">0.01</span> target:self selector:<span style="color:#66d9ef">@selector</span>(keepRunloopAwake) userInfo:nil repeats:true];
+    self.maxTaskCount <span style="color:#f92672">=</span> <span style="color:#ae81ff">30</span>;
+    self.tasks <span style="color:#f92672">=</span> [NSMutableArray array];
+    
+    [self addRunloopObserver];
+    [self.tableView reloadData];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="cell内部内存优化">Cell内部内存优化</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)prepareForReuse {
+    [super prepareForReuse];
+    
+    self.imageView1.image <span style="color:#f92672">=</span> nil;
+    self.imageView2.image <span style="color:#f92672">=</span> nil;
+    self.imageView3.image <span style="color:#f92672">=</span> nil;
+    self.image1 <span style="color:#f92672">=</span> nil;
+    self.image2 <span style="color:#f92672">=</span> nil;
+    self.image3 <span style="color:#f92672">=</span> nil;
+    
+    self.titleLabel1.text <span style="color:#f92672">=</span> nil;
+    self.titleLabel2.text <span style="color:#f92672">=</span> nil;
+    self.titleLabel3.text <span style="color:#f92672">=</span> nil;
+    self.title1 <span style="color:#f92672">=</span> nil;
+    self.title2 <span style="color:#f92672">=</span> nil;
+    self.title3 <span style="color:#f92672">=</span> nil;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="主线程卡顿监测">主线程卡顿监测</h3>
+
+<p>测试只能反馈一部分问题，一款优秀的应用是经得起在真实的用户环境中的考验的，一些对用户体验要求较为严苛的应用，当投向市场，要随时获得应用的使用情况并据此进行优化。</p>
+
+<p>参照微信团队的卡顿检测方案，我们实现一下线上卡顿监测并报告给服务器的功能。</p>
+
+<p>贴上主线程卡顿监测的类LagMonitor的实现。</p>
+
+<h4 id="接口-1">接口</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">LagMonitor</span> : <span style="color:#a6e22e">NSObject</span>
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">sharedInstance</span>;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Start With Standard
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">start</span>;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Start With Define Available
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">startWithTimerInterval:</span>(NSTimeInterval)timerTimeInterval <span style="color:#a6e22e">TimeoutInterval:</span>(NSTimeInterval)timeOutInterval;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Stop
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">stop</span>;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="类别">类别</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;LagMonitor.h&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">LagMonitor</span> ()
+{
+    <span style="color:#75715e">/// Observer in Main RunLoop
+</span><span style="color:#75715e"></span>    CFRunLoopObserverRef _observer;
+    <span style="color:#75715e">/// Timer for time judge in Monitor Thread
+</span><span style="color:#75715e"></span>    CFRunLoopTimerRef _timer;
+    <span style="color:#75715e">/// Interval of timer
+</span><span style="color:#75715e"></span>    NSTimeInterval _timerTimeInterval;
+}
+<span style="color:#75715e">/// 监控线程
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) NSThread <span style="color:#f92672">*</span> monitorThread;
+<span style="color:#75715e">/// Task is executiving in Main RunLoop or not
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">assign</span>) <span style="color:#66d9ef">BOOL</span> executiving;
+<span style="color:#75715e">/// Task start date in Main RunLoop
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) NSDate <span style="color:#f92672">*</span> taskStartDate;
+<span style="color:#75715e">/// Interval which task time out in Main RunLoop
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">assign</span>) NSTimeInterval timeOutInterval;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="实现-1">实现</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">LagMonitor</span>
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">sharedInstance</span> {
+    <span style="color:#66d9ef">static</span> LagMonitor <span style="color:#f92672">*</span> _instance;
+    <span style="color:#66d9ef">static</span> dispatch_once_t onceToken;
+    dispatch_once(<span style="color:#f92672">&amp;</span>onceToken, <span style="color:#f92672">^</span>{
+        _instance <span style="color:#f92672">=</span> [[self alloc] init];
+        _instance.monitorThread <span style="color:#f92672">=</span> [[NSThread alloc] initWithTarget:self selector:<span style="color:#66d9ef">@selector</span>(monitorThreadEntryPoint:) object:nil];
+        [_instance.monitorThread setName:<span style="color:#e6db74">@&#34;LagMonitorThread&#34;</span>];
+        [_instance.monitorThread start];
+    });
+    <span style="color:#66d9ef">return</span> _instance;
+}
++ (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">monitorThreadEntryPoint:</span>(<span style="color:#66d9ef">id</span>)__unused object {
+    <span style="color:#66d9ef">@autoreleasepool</span> {
+        NSRunLoop <span style="color:#f92672">*</span> runloop <span style="color:#f92672">=</span> [NSRunLoop currentRunLoop];
+        [runloop addPort:[NSMachPort port] forMode:NSRunLoopCommonModes];
+        [runloop run];
+    }
+}
+
+<span style="color:#75715e">#pragma mark - Public Functions
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Start With Standard
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)start {
+    [self startWithTimerInterval:<span style="color:#ae81ff">1</span> TimeoutInterval:<span style="color:#ae81ff">1.5</span>];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Start With Define Available
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)startWithTimerInterval:(NSTimeInterval)timerTimeInterval TimeoutInterval:(NSTimeInterval)timeOutInterval {
+    _timerTimeInterval <span style="color:#f92672">=</span> timerTimeInterval;
+    _timeOutInterval <span style="color:#f92672">=</span> timeOutInterval;
+    <span style="color:#75715e">/// 创建Observer
+</span><span style="color:#75715e"></span>    [self configObserver];
+    <span style="color:#75715e">/// 创建Timer
+</span><span style="color:#75715e"></span>    [self performSelector:<span style="color:#66d9ef">@selector</span>(configTimer) onThread:self.monitorThread withObject:nil waitUntilDone:false modes:<span style="color:#ae81ff">@[</span>NSRunLoopCommonModes<span style="color:#ae81ff">]</span>];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Stop
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)stop {
+    <span style="color:#75715e">/// 移除Observer
+</span><span style="color:#75715e"></span>    [self removeObserver];
+    
+    <span style="color:#75715e">/// 移除Timer
+</span><span style="color:#75715e"></span>    [self performSelector:<span style="color:#66d9ef">@selector</span>(removeTimer) onThread:self.monitorThread withObject:nil waitUntilDone:false modes:<span style="color:#ae81ff">@[</span>NSRunLoopCommonModes<span style="color:#ae81ff">]</span>];
+}
+
+<span style="color:#75715e">#pragma mark - Observer Callback
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 创建Observer
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)configObserver {
+    <span style="color:#66d9ef">if</span> (_observer) {
+        <span style="color:#66d9ef">return</span>;
+    }
+    CFRunLoopObserverContext context <span style="color:#f92672">=</span> {
+        <span style="color:#ae81ff">0</span>,
+        (<span style="color:#66d9ef">__bridge</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)self,
+        <span style="color:#f92672">&amp;</span>CFRetain,
+        <span style="color:#f92672">&amp;</span>CFRelease,
+        NULL
+    };
+    _observer <span style="color:#f92672">=</span> CFRunLoopObserverCreate(kCFAllocatorDefault,
+                                        kCFRunLoopAllActivities,
+                                        true,
+                                        <span style="color:#ae81ff">0</span>,
+                                        <span style="color:#f92672">&amp;</span>RunLoopObserverCallback,
+                                        <span style="color:#f92672">&amp;</span>context);
+    CFRunLoopAddObserver(CFRunLoopGetMain(), _observer, kCFRunLoopCommonModes);
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 移除Observer
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)removeObserver {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_observer) {
+        <span style="color:#66d9ef">return</span>;
+    }
+    CFRunLoopRemoveObserver(CFRunLoopGetMain(), _observer, kCFRunLoopCommonModes);
+    CFRelease(_observer);
+    _observer <span style="color:#f92672">=</span> NULL;
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Observer回调
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> RunLoopObserverCallback(CFRunLoopObserverRef observer, CFRunLoopActivity activity, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>info) {
+    LagMonitor <span style="color:#f92672">*</span> monitor <span style="color:#f92672">=</span> (<span style="color:#66d9ef">__bridge</span> LagMonitor <span style="color:#f92672">*</span>)info;
+    <span style="color:#66d9ef">switch</span> (activity) {
+        <span style="color:#66d9ef">case</span> kCFRunLoopEntry:
+        <span style="color:#66d9ef">case</span> kCFRunLoopBeforeTimers:
+        {
+            <span style="color:#66d9ef">break</span>;
+        }
+        <span style="color:#66d9ef">case</span> kCFRunLoopBeforeSources:
+        {
+            monitor.executiving <span style="color:#f92672">=</span> true;
+            monitor.taskStartDate <span style="color:#f92672">=</span> [NSDate date];
+            <span style="color:#66d9ef">break</span>;
+        }
+        <span style="color:#66d9ef">case</span> kCFRunLoopBeforeWaiting:
+        {
+            monitor.executiving <span style="color:#f92672">=</span> false;
+            <span style="color:#66d9ef">break</span>;
+        }
+        <span style="color:#66d9ef">case</span> kCFRunLoopAfterWaiting:
+        <span style="color:#66d9ef">case</span> kCFRunLoopExit:
+        <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>
+        {
+            <span style="color:#66d9ef">break</span>;
+        }
+    }
+}
+<span style="color:#75715e">#pragma mark - Timer Callback 
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 创建Timer
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)configTimer {
+    <span style="color:#66d9ef">if</span> (_timer) {
+        <span style="color:#66d9ef">return</span>;
+    }
+    CFRunLoopTimerContext context <span style="color:#f92672">=</span>  {
+        <span style="color:#ae81ff">0</span>,
+        (<span style="color:#66d9ef">__bridge</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)self,
+        <span style="color:#f92672">&amp;</span>CFRetain,
+        <span style="color:#f92672">&amp;</span>CFRelease,
+        NULL
+    };
+    _timer <span style="color:#f92672">=</span> CFRunLoopTimerCreate(kCFAllocatorDefault,
+                                  <span style="color:#ae81ff">0.1</span>,
+                                  _timerTimeInterval,
+                                  <span style="color:#ae81ff">0</span>,
+                                  <span style="color:#ae81ff">0</span>,
+                                  <span style="color:#f92672">&amp;</span>MonitorTimerCallback,
+                                  <span style="color:#f92672">&amp;</span>context);
+    
+    CFRunLoopAddTimer(CFRunLoopGetCurrent(), _timer, kCFRunLoopCommonModes);
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 移除Timer
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)removeTimer {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_timer) {
+        <span style="color:#66d9ef">return</span>;
+    }
+    CFRunLoopRemoveTimer(CFRunLoopGetCurrent(), _timer, kCFRunLoopCommonModes);
+    CFRelease(_timer);
+    _timer <span style="color:#f92672">=</span> NULL;
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Timer回调
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> MonitorTimerCallback(CFRunLoopTimerRef timer, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>info) {
+    LagMonitor <span style="color:#f92672">*</span> monitor <span style="color:#f92672">=</span> (<span style="color:#66d9ef">__bridge</span> LagMonitor <span style="color:#f92672">*</span>)info;
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>monitor.executiving) {
+        <span style="color:#66d9ef">return</span>;
+    }
+    <span style="color:#75715e">/// MainRunLoop正在执行任务，且本次loop此时尚未执行完
+</span><span style="color:#75715e"></span>    NSTimeInterval executeTime <span style="color:#f92672">=</span> [[NSDate date] timeIntervalSinceDate:monitor.taskStartDate];
+    <span style="color:#75715e">/// 主线程一次RunLoop延迟超过阈值，获取当前调用栈，上传服务器
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (executeTime <span style="color:#f92672">&gt;=</span> monitor.timeOutInterval) {
+        NSLog(<span style="color:#e6db74">@&#34;主线程本次RunLoop卡顿时间：%.2f&#34;</span>, executeTime);
+    }
+}
+<span style="color:#75715e">#pragma mark - StackInfo Handle
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="使用-1">使用</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">BOOL</span>)application:(UIApplication <span style="color:#f92672">*</span>)application didFinishLaunchingWithOptions:(NSDictionary <span style="color:#f92672">*</span>)launchOptions {
+    self.window <span style="color:#f92672">=</span> [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    ViewController <span style="color:#f92672">*</span> rootVC <span style="color:#f92672">=</span> [ViewController new];
+    UINavigationController <span style="color:#f92672">*</span> navVC <span style="color:#f92672">=</span> [[UINavigationController alloc] initWithRootViewController:rootVC];
+    self.window.rootViewController <span style="color:#f92672">=</span> navVC;
+    [self.window makeKeyAndVisible];
+    <span style="color:#75715e">/// LagMonitor
+</span><span style="color:#75715e"></span>    [[LagMonitor sharedInstance] startWithTimerInterval:<span style="color:#ae81ff">1</span> TimeoutInterval:<span style="color:#ae81ff">1</span>];
+    <span style="color:#75715e">/// CrashHandler
+</span><span style="color:#75715e"></span>    [CrashHandler sharedInstance];
+    <span style="color:#66d9ef">return</span> YES;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="让闪退的应用起死回生并获取闪退信息">让闪退的应用起死回生并获取闪退信息</h3>
+
+<p>既然要处理闪退信息，那肯定需要一个全局的类，我们定为CrashHandler。</p>
+
+<h4 id="接口-2">接口</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">CrashHandler</span> : <span style="color:#a6e22e">NSObject</span>
+{
+    <span style="color:#66d9ef">BOOL</span> ignore;
+}
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">sharedInstance</span>;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="类内部常变量定义">类内部常变量定义</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;CrashHandler.h&#34;
+</span><span style="color:#75715e">#import &lt;UIKit/UIKit.h&gt;
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;libkern/OSAtomic.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;execinfo.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>NSString <span style="color:#f92672">*</span> <span style="color:#66d9ef">const</span> kSignalExceptionName <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;kSignalExceptionName&#34;</span>;
+NSString <span style="color:#f92672">*</span> <span style="color:#66d9ef">const</span> kSignalKey <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;kSignalKey&#34;</span>;
+NSString <span style="color:#f92672">*</span> <span style="color:#66d9ef">const</span> kCaughtExceptionStackInfoKey <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;kCaughtExceptionStackInfoKey&#34;</span>;
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">HandleException</span>(NSException <span style="color:#f92672">*</span>exception);
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">SignalHandler</span>(<span style="color:#66d9ef">int</span> signal);
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> _exceptionInfo;
+<span style="color:#66d9ef">static</span> NSString <span style="color:#f92672">*</span> _signalInfo;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="实现-2">实现</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">CrashHandler</span>
+<span style="color:#66d9ef">static</span> CrashHandler <span style="color:#f92672">*</span>instance <span style="color:#f92672">=</span> nil;
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">sharedInstance</span>
+{
+    <span style="color:#66d9ef">static</span> dispatch_once_t onceToken;
+    dispatch_once(<span style="color:#f92672">&amp;</span>onceToken, <span style="color:#f92672">^</span>{
+        instance <span style="color:#f92672">=</span> [[[self <span style="color:#66d9ef">class</span>] alloc] init];
+    });
+    <span style="color:#66d9ef">return</span> instance;
+}
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">allocWithZone:</span>(<span style="color:#66d9ef">struct</span> _NSZone <span style="color:#f92672">*</span>)zone
+{
+    <span style="color:#66d9ef">static</span> dispatch_once_t onceToken;
+    dispatch_once(<span style="color:#f92672">&amp;</span>onceToken, <span style="color:#f92672">^</span>{
+        instance <span style="color:#f92672">=</span> [super allocWithZone:zone];
+    });
+    <span style="color:#66d9ef">return</span> instance;
+}
+- (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">init</span>
+{
+    self <span style="color:#f92672">=</span> [super init];
+    <span style="color:#66d9ef">if</span> (self) {
+        [self setCatchExceptionHandler];
+    }
+    <span style="color:#66d9ef">return</span> self;
+}
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">setCatchExceptionHandler</span>
+{
+    <span style="color:#75715e">// 1.捕获一些异常导致的崩溃
+</span><span style="color:#75715e"></span>    NSSetUncaughtExceptionHandler(<span style="color:#f92672">&amp;</span>HandleException);
+    
+    <span style="color:#75715e">// 2.捕获非异常情况，通过signal传递出来的崩溃
+</span><span style="color:#75715e"></span>    signal(SIGABRT, SignalHandler);
+    signal(SIGILL, SignalHandler);
+    signal(SIGSEGV, SignalHandler);
+    signal(SIGFPE, SignalHandler);
+    signal(SIGBUS, SignalHandler);
+    signal(SIGPIPE, SignalHandler);
+}
++ (NSArray <span style="color:#f92672">*</span>)<span style="color:#a6e22e">backtrace</span>
+{
+    <span style="color:#66d9ef">void</span><span style="color:#f92672">*</span> callstack[<span style="color:#ae81ff">128</span>];
+    <span style="color:#66d9ef">int</span> frames <span style="color:#f92672">=</span> backtrace(callstack, <span style="color:#ae81ff">128</span>);
+    <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>strs <span style="color:#f92672">=</span> backtrace_symbols(callstack, frames);
+    
+    NSMutableArray <span style="color:#f92672">*</span>backtrace <span style="color:#f92672">=</span> [NSMutableArray arrayWithCapacity:frames];
+    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> frames; i<span style="color:#f92672">++</span>) {
+        [backtrace addObject:[NSString stringWithUTF8String:strs[i]]];
+    }
+    free(strs);
+    
+    <span style="color:#66d9ef">return</span> backtrace;
+}
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">handleException:</span>(NSException <span style="color:#f92672">*</span>)exception
+{
+    <span style="color:#75715e">/// info
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span>message <span style="color:#f92672">=</span> [NSString stringWithFormat:<span style="color:#e6db74">@&#34;异常捕获崩溃，堆栈信息：</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">%@</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">%@&#34;</span>,
+                         [exception reason],
+                         [[exception userInfo] objectForKey:kCaughtExceptionStackInfoKey]];
+    NSLog(<span style="color:#e6db74">@&#34;%@&#34;</span>,message);
+    _exceptionInfo <span style="color:#f92672">=</span> message;
+    
+    <span style="color:#75715e">/// alert
+</span><span style="color:#75715e"></span>    UIAlertController <span style="color:#f92672">*</span> alertVC <span style="color:#f92672">=</span> [UIAlertController alertControllerWithTitle:<span style="color:#e6db74">@&#34;反馈提示&#34;</span> message:<span style="color:#e6db74">@&#34;应用程序崩溃了，为了准确定位闪退原因，我们需要您将当前程序信息反馈给我们，是否反馈？&#34;</span> preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction <span style="color:#f92672">*</span> sureAction <span style="color:#f92672">=</span> [UIAlertAction actionWithTitle:<span style="color:#e6db74">@&#34;反馈&#34;</span> style:UIAlertActionStyleDefault handler:<span style="color:#f92672">^</span>(UIAlertAction <span style="color:#f92672">*</span> _Nonnull action) {
+        NSLog(<span style="color:#e6db74">@&#34;问题报告：</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74"> %@</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">%@&#34;</span>, _exceptionInfo, _signalInfo);
+    }];
+    UIAlertAction <span style="color:#f92672">*</span> cancelAction <span style="color:#f92672">=</span> [UIAlertAction actionWithTitle:<span style="color:#e6db74">@&#34;取消&#34;</span> style:UIAlertActionStyleCancel handler:<span style="color:#f92672">^</span>(UIAlertAction <span style="color:#f92672">*</span> _Nonnull action) {
+        ignore <span style="color:#f92672">=</span> YES;
+    }];
+    [alertVC addAction:sureAction];
+    [alertVC addAction:cancelAction];
+    [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:alertVC animated:true completion:nil];
+    
+    <span style="color:#75715e">/// runloop
+</span><span style="color:#75715e"></span>    CFRunLoopRef runLoop <span style="color:#f92672">=</span> CFRunLoopGetCurrent();
+    CFArrayRef allModes <span style="color:#f92672">=</span> CFRunLoopCopyAllModes(runLoop);
+    
+    <span style="color:#66d9ef">while</span> (<span style="color:#f92672">!</span>ignore) {
+        <span style="color:#66d9ef">for</span> (NSString <span style="color:#f92672">*</span>mode <span style="color:#66d9ef">in</span> (<span style="color:#66d9ef">__bridge</span> NSArray <span style="color:#f92672">*</span>)allModes) {
+            CFRunLoopRunInMode((CFStringRef)mode, <span style="color:#ae81ff">0.001</span>, false);
+        }
+    }
+    
+    CFRelease(allModes);
+    
+    NSSetUncaughtExceptionHandler(NULL);
+    signal(SIGABRT, SIG_DFL);
+    signal(SIGILL, SIG_DFL);
+    signal(SIGSEGV, SIG_DFL);
+    signal(SIGFPE, SIG_DFL);
+    signal(SIGBUS, SIG_DFL);
+    signal(SIGPIPE, SIG_DFL);
+    
+    <span style="color:#66d9ef">if</span> ([[exception name] isEqual:kSignalExceptionName]) {
+        kill(getpid(), [[[exception userInfo] objectForKey:kSignalKey] intValue]);
+    } <span style="color:#66d9ef">else</span> {
+        [exception raise];
+    }
+}
+<span style="color:#66d9ef">@end</span>
+  
+<span style="color:#66d9ef">void</span> HandleException(NSException <span style="color:#f92672">*</span>exception)
+{
+    <span style="color:#75715e">// 获取异常的堆栈信息
+</span><span style="color:#75715e"></span>    NSArray <span style="color:#f92672">*</span>callStack <span style="color:#f92672">=</span> [exception callStackSymbols];
+    NSMutableDictionary <span style="color:#f92672">*</span>userInfo <span style="color:#f92672">=</span> [NSMutableDictionary dictionary];
+    [userInfo setObject:callStack forKey:kCaughtExceptionStackInfoKey];
+    
+    CrashHandler <span style="color:#f92672">*</span>crashObject <span style="color:#f92672">=</span> [CrashHandler sharedInstance];
+    NSException <span style="color:#f92672">*</span>customException <span style="color:#f92672">=</span> [NSException exceptionWithName:[exception name] reason:[exception reason] userInfo:userInfo];
+    [crashObject performSelectorOnMainThread:<span style="color:#66d9ef">@selector</span>(handleException:) withObject:customException waitUntilDone:YES];
+}
+<span style="color:#66d9ef">void</span> SignalHandler(<span style="color:#66d9ef">int</span> signal)
+{
+    <span style="color:#75715e">// 这种情况的崩溃信息，就另某他法来捕获吧
+</span><span style="color:#75715e"></span>    NSArray <span style="color:#f92672">*</span>callStack <span style="color:#f92672">=</span> [CrashHandler backtrace];
+    NSLog(<span style="color:#e6db74">@&#34;信号捕获崩溃，堆栈信息：%@&#34;</span>,callStack);
+    _signalInfo <span style="color:#f92672">=</span> [NSString stringWithFormat:<span style="color:#e6db74">@&#34;信号捕获崩溃，堆栈信息：%@&#34;</span>,callStack];
+    
+    CrashHandler <span style="color:#f92672">*</span>crashObject <span style="color:#f92672">=</span> [CrashHandler sharedInstance];
+    NSException <span style="color:#f92672">*</span>customException <span style="color:#f92672">=</span> [NSException exceptionWithName:kSignalExceptionName
+                                                           reason:[NSString stringWithFormat:NSLocalizedString(<span style="color:#e6db74">@&#34;Signal %d was raised.&#34;</span>, nil),signal]
+                                                         userInfo:<span style="color:#ae81ff">@{</span>kSignalKey:[NSNumber numberWithInt:signal]<span style="color:#ae81ff">}</span>];
+    
+    [crashObject performSelectorOnMainThread:<span style="color:#66d9ef">@selector</span>(handleException:) withObject:customException waitUntilDone:YES];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="使用-2">使用</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">BOOL</span>)application:(UIApplication <span style="color:#f92672">*</span>)application didFinishLaunchingWithOptions:(NSDictionary <span style="color:#f92672">*</span>)launchOptions {    
+    self.window <span style="color:#f92672">=</span> [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    ViewController <span style="color:#f92672">*</span> rootVC <span style="color:#f92672">=</span> [ViewController new];
+    UINavigationController <span style="color:#f92672">*</span> navVC <span style="color:#f92672">=</span> [[UINavigationController alloc] initWithRootViewController:rootVC];
+    self.window.rootViewController <span style="color:#f92672">=</span> navVC;
+    [self.window makeKeyAndVisible];
+    <span style="color:#75715e">/// LagMonitor
+</span><span style="color:#75715e"></span>    [[LagMonitor sharedInstance] startWithTimerInterval:<span style="color:#ae81ff">1</span> TimeoutInterval:<span style="color:#ae81ff">1</span>];
+    <span style="color:#75715e">/// CrashHandler
+</span><span style="color:#75715e"></span>    [CrashHandler sharedInstance];
+    <span style="color:#66d9ef">return</span> YES;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>找个控制器测试一下：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)touchesBegan:(NSSet<span style="color:#f92672">&lt;</span>UITouch <span style="color:#f92672">*&gt;</span> <span style="color:#f92672">*</span>)touches withEvent:(UIEvent <span style="color:#f92672">*</span>)event {
+    NSArray <span style="color:#f92672">*</span> array <span style="color:#f92672">=</span> [NSArray array];
+    NSLog(<span style="color:#e6db74">@&#34;%@&#34;</span>, array[<span style="color:#ae81ff">0</span>]);
+}
+<span style="color:#f92672">~~~</span>
+
+<span style="color:#960050;background-color:#1e0010">可以看到预期的结果。</span></code></pre></div>
+
+<h3 id="uitableview滑动性能影响因素">UITableView滑动性能影响因素</h3>
+
+<p>人眼能识别的帧率是60左右，这也是为什么电脑屏幕的最佳刷新帧率是60HZ。</p>
+
+<p>屏幕1秒钟会刷新60次（重新渲染60次），每次刷新的处理时间就是1/60（秒）。</p>
+
+<p>所以，所有会导致计算、渲染耗时的操作都会影响UITableVIew的流畅。</p>
+
+<h4 id="在主线程中执行耗时操作">在主线程中执行耗时操作</h4>
+
+<p>这种情况不做赘述。</p>
+
+<h4 id="动态计算cell高度运算量过大">动态计算Cell高度运算量过大</h4>
+
+<p>在iOS7之前，每一个Cell的高度，只会计算一次，后面再次滑到这个Cell这里，都会读取缓存的高度，也即高度计算的代理方法不会再执行。</p>
+
+<p>但是到了iOS8,不会再缓存Cell的高度了，也就是说每次滑到某个Cell，代理方法都会执行一次，重新计算这个Cell的高度（iOS 9以后没测试过）。</p>
+
+<p>所以，如果计算Cell高度的这个过程过于复杂，或者某个计算使用的算法耗时很长，可能会导致计算时间大于1/60，那么必然导致界面的卡顿，或不流畅。</p>
+
+<p>一种解决方法是：在Cell中定义一个public方法，用来计算Cell高度，然后计算完高度后，将高度存储在Cell对应的Model中（Model里定义一个属性来存高度），然后在渲染Cell时，我们依然需要动态计算各个子视图的高度。</p>
+
+<p>更优的方案是：再定义一个ModelFrame对象，在子线程请求服务器接口返回后，转换为对象的同时，也把各个子视图的frame计算好，存在ModelFrame中，ModelFrame 和 Model 合并成一个Model存储到数组中。这样在为Cell各个子控件赋值时，仅仅是取值、赋值，在计算Cell高度时，也仅仅是加法运算。</p>
+
+<h4 id="界面汇总透明背景色视图过多">界面汇总透明背景色视图过多</h4>
+
+<p>屏幕上显示的内容，是通过一个个像素点呈现出来的，每一个像素点都是通过三原色的组合才呈现出不同的颜色，最终才是我们看到的内容。</p>
+
+<p>在 iPhone5 的液晶显示器上有1,136×640=727,040个像素，因此有2,181,120个颜色单元。在15寸视网膜屏的 MacBook Pro 上，这一数字达到15.5百万以上。所有的图形堆栈一起工作以确保每次正确的显示。当你滚动整个屏幕的时候，数以百万计的颜色单元必须以每秒60次的速度刷新，这是一个很大的工作量。</p>
+
+<p>每一个像素点的颜色计算是这样的：</p>
+
+<p>R = S + D (1 - Sa)</p>
+
+<p>结果的颜色 是子视图这个像素点的颜色 + 父视图这个像素点的颜色 （1 - 子视图的透明度）</p>
+
+<p>当然，如果有两个兄弟视图叠加，那么上面的中文解释可能并不贴切，只是为了更容易理解。</p>
+
+<p>如果两个兄弟视图重合，计算的是重合区域的像素点：结果的颜色 是 上面的视图这个像素点的颜色 + 下面这个视图该像素点的颜色 * （1 - 上面视图的透明度）</p>
+
+<p>只有当透明度为1时，上面的公式变为R = S，就简单的多了。否则的话，就非常复杂了。</p>
+
+<p>每一个像素点是由三原色组成，例如父视图的颜色和透明度是（Pr,Pg,Pb,Pa)，子视图的颜色颜色和透明度是（Sr,Sg,Sb,Sa)，那么我们计算这个重合区域某像素点的颜色，需要先分别计算出红、绿、蓝。</p>
+
+<p>Rr = Sr + Pr (1 - Sa)，</p>
+
+<p>Rg = Sg + Pg (1 - Sa)，</p>
+
+<p>Rb = Sb + Pb * (1 - Sa)。</p>
+
+<p>如果父视图的透明度，即Pa = 1,那么这个像素的颜色就是(Rr,Rg,Rb)。</p>
+
+<p>但是，如果父视图的透明Pa 不等 1，那么我们需要将这个结果颜色当做一个整体作为子视图的颜色，再去与父视图组合计算颜色，如此递推。</p>
+
+<p>所以设置不透明时，可以为GPU节省大量的工作，减少大量的消耗。</p>
+
+<h4 id="主线程runloop切换到uitrackingrunloopmode时-视图有过多的修改">主线程RunLoop切换到UITrackingRunLoopMode时，视图有过多的修改</h4>
+
+<p>这也就是上面介绍的RunLoop的使用，避免在主线程RunLoop切换到UITrackingRunLoopMode时，修改视图。</p>
+
+<h3 id="结语">结语</h3>
+
+<p>纯理论往往是枯燥无味的，较为深入的更是晦涩难懂，最佳的学习方式就是所见即所得，理论指导实践，实践检验理论，逆向学习，逆向分析往往会更加轻松。
+RunLoop是iOS/MacOS中基础的知识点，但却是整个系统中较为核心的部分，涉及到操作系统、端口、内核、进程（线程）通信，比较深入且复杂。</p>
+
+<p>在实际开发中很少用到这些底层的知识点，我们只需要对RunLoop的理论进行一些掌握，然后可以应用RunLoop的知识进行分析、优化、实现，就足够了。</p>
+		</div>
+		<footer class="post__footer">
+			
+<div class="post__tags tags clearfix">
+	<svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5 0 11V3C0 1.5.8.8.8.8S1.5 0 3 0h8c1.5 0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+	<ul class="tags__list">
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/objc/" rel="tag">objc</a>
+		</li>
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/runloop/" rel="tag">RunLoop</a>
+		</li>
+	</ul>
+</div>
+		</footer>
+	</article>
+</main>
+
+<div class="authorbox clearfix">
+	<div class="authorbox__header">
+		<span class="authorbox__name">About sean</span>
+	</div>
+	<div class="authorbox__description">
+		a manager and coder in internet ltd.
+	</div>
+</div>
+
+<nav class="pager flex">
+	<div class="pager__item pager__item--prev">
+		<a class="pager__link" href="/post/ocrunloop/" rel="prev">
+			<span class="pager__subtitle">«&thinsp;Previous</span>
+			<p class="pager__title">Objective-C:RunLoop(原理)</p>
+		</a>
+	</div>
+	<div class="pager__item pager__item--next">
+		<a class="pager__link" href="/post/ocruntime/" rel="next">
+			<span class="pager__subtitle">Next&thinsp;»</span>
+			<p class="pager__title">Objective-C:Runtime</p>
+		</a>
+	</div>
+</nav>
+
+
+
+			</div>
+			<aside class="sidebar"><div class="widget-search widget">
+	<form class="widget-search__form" role="search" method="get" action="https://google.com/search">
+		<label>
+			<input class="widget-search__field" type="search" placeholder="SEARCH..." value="" name="q" aria-label="SEARCH...">
+		</label>
+		<input class="widget-search__submit" type="submit" value="Search">
+		<input type="hidden" name="sitesearch" value="http://sean.vip/" />
+	</form>
+</div>
+<div class="widget-recent widget">
+	<h4 class="widget__title">Recent Posts</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item"><a class="widget__link" href="/post/ios%E8%AE%A1%E6%97%B6%E5%99%A8/">iOS:计时器</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/iosresponderchain/">iOS:ResponderChain</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/oc%E4%BB%8Ensproxy%E8%B0%88%E8%B5%B7/">Objective-C-从NSProxy谈起</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/ocruntimebuttonclicked/">Objective-C:Runtime&#43;ButtonClicked</a></li>
+			<li class="widget__item"><a class="widget__link" href="/post/ocruntimenskeyedarchiver/">Objective-C:Runtime&#43;自动化归档</a></li>
+		</ul>
+	</div>
+</div>
+<div class="widget-categories widget">
+	<h4 class="widget__title">Categories</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item">
+				<a class="widget__link" href="/categories/ios/">iOS</a>
+			</li>
+		</ul>
+	</div>
+</div>
+<div class="widget-taglist widget">
+	<h4 class="widget__title">Tags</h4>
+	<div class="widget__content">
+		<a class="widget-taglist__link widget__link btn" href="/tags/block/" title="block">block</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/gcd/" title="GCD">GCD</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/objc/" title="objc">objc</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/runloop/" title="RunLoop">RunLoop</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="二维码">二维码</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AD%98%E5%82%A8/" title="存储">存储</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AE%89%E5%85%A8/" title="安全">安全</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" title="数据库">数据库</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E7%9B%B8%E6%9C%BA/" title="相机">相机</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/" title="计时器">计时器</a>
+	</div>
+</div>
+<div class="widget-social widget">
+	<h4 class="widget-social__title widget__title">Social</h4>
+	<div class="widget-social__content widget__content">
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="GitHub" rel="noopener noreferrer" href="https://github.com/sean-tech" target="_blank">
+				<svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0c-106.1 0-192 85.8-192 191.7 0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2 0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8 0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7 0 0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4 0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5 0 25.6-.2 46.3-.2 52.6 0 5.1 3.5 11.1 13.2 9.2 76.2-25.5 131.2-97.3 131.2-182 0-105.9-86-191.7-192-191.7z"/></svg>
+				<span>GitHub</span>
+			</a>
+		</div>
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="Email" href="mailto:sean.vip.contact@foxmail.com">
+				<svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16-256-16h-16-384-16zm347 16-139 92.5-139-92.5zm-148 125.5 9 5.5 9-5.5 167-111.5v210h-352v-210z"/></svg>
+				<span>sean.vip.contact@foxmail.com</span>
+			</a>
+		</div>
+
+		
+	</div>
+</div>
+</aside>
+		</div>
+		<footer class="footer">
+	<div class="container footer__container flex">
+		
+<div class="footer__links">
+	<a class="footer__link" href="/about/">About Me</a>
+</div>
+		<div class="footer__copyright">
+			&copy; 2020 John Doe.
+			<span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span>
+		</div>
+	</div>
+</footer>
+	</div>
+<script async defer src="/js/menu.js"></script>
+<script src="/js/custom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async></script>
+</body>
+</html>
