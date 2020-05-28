@@ -25,15 +25,6 @@ Setup Some fun facts about Hugo:
     </item>
     
     <item>
-      <title>iOS:计时器</title>
-      <link>http://sean.vip/post/ios%E8%AE%A1%E6%97%B6%E5%99%A8/</link>
-      <pubDate>Thu, 12 Mar 2020 14:05:55 +0800</pubDate>
-      
-      <guid>http://sean.vip/post/ios%E8%AE%A1%E6%97%B6%E5%99%A8/</guid>
-      <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;1S的误差对计算机来说都是天文数字&lt;/p&gt;</description>
-    </item>
-    
-    <item>
       <title>iOS:ResponderChain</title>
       <link>http://sean.vip/post/iosresponderchain/</link>
       <pubDate>Wed, 29 Nov 2017 14:11:21 +0800</pubDate>
@@ -112,6 +103,15 @@ Setup Some fun facts about Hugo:
       
       <guid>http://sean.vip/post/ocblock/</guid>
       <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;Objective-C中的匿名函数–Blcok&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>iOS:计时器</title>
+      <link>http://sean.vip/post/ios%E8%AE%A1%E6%97%B6%E5%99%A8/</link>
+      <pubDate>Sat, 12 Mar 2016 14:05:55 +0800</pubDate>
+      
+      <guid>http://sean.vip/post/ios%E8%AE%A1%E6%97%B6%E5%99%A8/</guid>
+      <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;1S的误差对计算机来说都是天文数字&lt;/p&gt;</description>
     </item>
     
     <item>
