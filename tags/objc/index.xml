@@ -48,6 +48,15 @@
     </item>
     
     <item>
+      <title>Objective-C:消息机制</title>
+      <link>http://sean.vip/post/oc%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6/</link>
+      <pubDate>Fri, 28 Oct 2016 14:09:57 +0800</pubDate>
+      
+      <guid>http://sean.vip/post/oc%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6/</guid>
+      <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;OC的消息发送石沉大海，就容易崩溃&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Objective-C:RunLoop(应用)</title>
       <link>http://sean.vip/post/ocrunloop2/</link>
       <pubDate>Wed, 28 Sep 2016 13:11:02 +0800</pubDate>
@@ -90,15 +99,6 @@
       
       <guid>http://sean.vip/post/oc%E4%BF%AE%E9%A5%B0%E7%AC%A6%E4%B8%8E%E5%85%B3%E9%94%AE%E5%AD%97/</guid>
       <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;形容词用不好是会挨揍的&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Objective-C:消息机制</title>
-      <link>http://sean.vip/post/oc%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>http://sean.vip/post/oc%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6/</guid>
-      <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;OC的消息发送石沉大海，就容易崩溃&lt;/p&gt;</description>
     </item>
     
   </channel>
