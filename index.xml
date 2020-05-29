@@ -17,11 +17,37 @@
       <pubDate>Tue, 26 May 2020 17:28:11 +0800</pubDate>
       
       <guid>http://sean.vip/about/</guid>
-      <description>Hugo is a static site engine written in Go.
-It makes use of a variety of open source projects including:
- Cobra Viper J Walter Weatherman Cast  Learn more and contribute on GitHub.
-Setup Some fun facts about Hugo:
- Built in Go Loosely inspired by Jekyll Primarily developed by spf13 on the train while commuting to and from Manhattan. Coded in Vim using spf13-vim  Have questions or suggestions?</description>
+      <description>SEAN 技术副总监|Go工程师|iOS 工程师|5 年互联网行业经验
+性别: 男， 年龄: 26
+学历: 本科，哈尔滨理工大学，软件工程专业
+联系：Email
+能力 技术管理，团队管理，方案制定，公司战略执行与战略配合；
+商务能力，沟通洽谈，合作维护，技术项目的商务谈判能力；
+技术能力，架构设计，Golang服务端开发，iOS客户端开发；
+ Golang服务的架构设计，分布式/微服务，负载均衡； 数据库表设计，Mysql主从架构，读写分离， 分库分表，索引性能优化等； 精通Objective-C，多线程，网络编程，绘制渲染，性能优化，内存管理，Runtime及Runloop； 熟悉C，C++，及其与OC的混合编程，熟悉Swift语言及OC与Swift混编，OC与JS交互，OC与Cocos lua交互； 擅长iOS App的架构设计，纵向分层架构，横向MVC、MVVM、MVP、路由模式等； 熟悉Java，SpringMVC，SpringBoot，MyBatis等的使用，后端服务程序，Api开发。  履历 广州链昇科技有限公司官网
+IT 互联网|区块链|2018.09—至今
+职位：技术副总监
+职能：创业中&amp;hellip;目前负责技术团队管理；
+广州看今朝科技有限公司 公司信息查询
+IT 互联网|区块链|2018.01—2018.09
+职位：商务总监|研发部经理|项目组长|iOS架构
+职能：作为商务总监，负责商务团队的管理，培训，客服团队培训，贯彻执行公司商务战略；
+同时负责资源引入，商务沟通/谈判，合同签订，合作维护，与技术团队对接等；
+任职研发部经理期间，负责研发团队的管理，工作跟进与进度汇报；
+入职初期作为项目组长，负责与合作方需求对接，方案策划，带领项目团队快速迭代，保证质量的实现产品交付；
+与此同时，制定了切合行业性质的iOS端模块化架构，保证了不同项目相似模块的复用，实现效率和质量的提升；
+广州爱小屏信息科技有限公司 官网
+IT 互联网|电商行业|2015.11—2018.01
+职位：iOS 开发组长
+职能：负责爱小屏 App 的需求讨论，时间预算，可行性分析;
+根据产品原型，开发模块功能，版本迭代，维护以及提审上线；
+负责超级优惠券 App 的开发，JS 交互接口的制定，以及迭代提审；
+负责与 Android 端，Web 端，服务器端制定交互及数据的统一规范。
+北京文澜科技有限公司
+IT 互联网|计算机软件|2015.07—2015.10
+职位：iOS 工程师
+职能：参与一米鲜初始版本的开发构建，以及 Weekends 的开发;
+根据产品原型，需求文档写项目架构，开发模块功能，提供技术解决方案; 产品测试调试，修复 bug 和产品迭代。</description>
     </item>
     
     <item>
