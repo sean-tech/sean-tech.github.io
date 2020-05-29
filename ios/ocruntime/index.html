@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Objective-C:Runtime - sean</title>
+	<script>(function(d,e){d[e]=d[e].replace("no-js","js");})(document.documentElement,"className");</script>
+	<meta name="description" content="Objective-C Runtime">
+		<meta property="og:title" content="Objective-C:Runtime" />
+<meta property="og:description" content="Objective-C Runtime" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://sean.vip/ios/ocruntime/" />
+<meta property="article:published_time" content="2017-04-20T14:10:06&#43;08:00"/>
+<meta property="article:modified_time" content="2017-04-20T14:10:06&#43;08:00"/>
+
+		
+<meta itemprop="name" content="Objective-C:Runtime">
+<meta itemprop="description" content="Objective-C Runtime">
+
+
+<meta itemprop="datePublished" content="2017-04-20T14:10:06&#43;08:00" />
+<meta itemprop="dateModified" content="2017-04-20T14:10:06&#43;08:00" />
+<meta itemprop="wordCount" content="910">
+
+
+
+<meta itemprop="keywords" content="objc," />
+
+		<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Objective-C:Runtime"/>
+<meta name="twitter:description" content="Objective-C Runtime"/>
+
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<link rel="stylesheet" href="/css/custom.css">
+	<link rel="shortcut icon" href="/favicon.ico">
+		
+</head>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container header__container">
+		
+	<div class="logo">
+		<a class="logo__link" href="/" title="sean" rel="home">
+			<div class="logo__title">sean</div>
+			<div class="logo__tagline">sean&#39;s zone</div>
+		</a>
+	</div>
+		<div class="divider"></div>
+	</div>
+</header>
+
+		<div class="wrapper flex">
+			<div class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">Objective-C:Runtime</h1>
+			<div class="post__meta meta">
+<div class="meta__item-datetime meta__item">
+	<svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class="meta__text" datetime="2017-04-20T14:10:06&#43;08:00">2017-04-20</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2l1 2h8v11h-16v-13z"/></svg><span class="meta__text"><a class="meta__link" href="/categories/ios/" rel="category">iOS</a>
+	</span>
+</div></div>
+		</header>
+<div class="post__toc toc">
+	<div class="toc__title">Page content</div>
+	<div class="toc__menu">
+		<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#前言">前言</a></li>
+<li><a href="#原理">原理</a></li>
+<li><a href="#应用">应用</a>
+<ul>
+<li><a href="#获取变量信息">获取变量信息</a></li>
+<li><a href="#动态关联属性">动态关联属性</a></li>
+<li><a href="#动态添加方法">动态添加方法</a></li>
+<li><a href="#动态方法交换-method-swizzling">动态方法交换 Method Swizzling</a></li>
+<li><a href="#黑魔法-method-swizzling">黑魔法 - Method Swizzling</a></li>
+</ul></li>
+<li><a href="#runtime与kvo">Runtime与KVO</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+	</div>
+</div>
+<div class="content post__content clearfix">
+			<p style="font-family:verdana;font-size:120%;color:gray" ,="" align="left">苹果绝学，斗转星移--Runtime</p>
+
+<h3 id="前言">前言</h3>
+
+<p>Runtime，即运行时系统，是Objective-C语言的核心，它决定了OC的动态特性。
+我们写的代码在程序运行过程中都会被转化成runtime的C代码执行，如上文所说的[obj doSomething];会被转化成objc_msgSend(obj, @selector(doSomething));
+虽然现在Swift推行如火如荼，但短时间内难以完全替代OC，尤其是大厂的热更新，更离不开Runtime的支撑，不熟悉Runtime，是很难领略OC的精髓的。</p>
+
+<h3 id="原理">原理</h3>
+
+<ol>
+<li>RunTime简称运行时,就是系统在运行的时候的一些机制，其中最主要的是消息机制;</li>
+<li>对于C语言，函数的调用在编译的时候会决定调用哪个函数，编译完成之后直接顺序执行，无任何二义性;</li>
+<li>OC的函数调用成为消息发送。属于动态调用过程。在编译的时候并不能决定真正调用哪个函数（事实证明，在编 译阶段，OC可以调用任何函数，即使这个函数并未实现，只要申明过就不会报错。而C语言在编译阶段就会报错）;</li>
+<li>只有在真正运行的时候才会根据函数的名称找 到对应的函数来调用。</li>
+</ol>
+
+<p>对于官方针对Runtime不同版本的解释：</p>
+
+<blockquote>
+<ol>
+<li>In the legacy runtime, if you change the layout of instance variables in a class, you must recompile classes that inherit from it.</li>
+<li>In the modern runtime, if you change the layout of instance variables in a class, you do not have to recompile classes that inherit from it.In addition, the modern runtime supports instance variable synthesis for declared properties (see Declared Properties in The Objective-C Programming Language).</li>
+</ol>
+</blockquote>
+
+<p>在Objective-C编程全解一书中，荻原刚志对Runtime相关章节的命名中，有一章的命名为“全新的运行时系统”，现在的Runtime更为合理与完善，使用灵活且功能强大。</p>
+
+<h3 id="应用">应用</h3>
+
+<p>纵观各个种类的SDK与应用场景，Runtime的身影随处可见，从AFN到SDWebImage，从MjExtension到MjRefresh，再到针对Button的连续点击做出限定的封装，以及部分崩溃日志收集SDK的灵活实现与处理，都离不开Runtime。主要应用有如下体现：</p>
+
+<ol>
+<li>动态的添加对象的成员变量和方法；</li>
+<li>动态交换两个方法的实现；</li>
+<li>实现分类添加属性；</li>
+<li>实现NSCoding的自动归档和解档；</li>
+<li>实现字典转模型的自动转换；</li>
+<li>还可以优雅的解决Button频繁点击的限定问题等等。</li>
+</ol>
+
+<h4 id="获取变量信息">获取变量信息</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> count;
+<span style="color:#75715e">// 获取成员变量列表（包括私有）
+</span><span style="color:#75715e"></span>Ivar <span style="color:#f92672">*</span>ivarList <span style="color:#f92672">=</span> class_copyIvarList([self <span style="color:#66d9ef">class</span>], <span style="color:#f92672">&amp;</span>count);
+<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i; i<span style="color:#f92672">&lt;</span>count; i<span style="color:#f92672">++</span>) 
+{
+    Ivar var <span style="color:#f92672">=</span> ivarList[i];
+    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>ivarName <span style="color:#f92672">=</span> ivar_getName(var);
+    NSLog(<span style="color:#e6db74">@&#34;IvarName----&gt;%@&#34;</span>, [NSString stringWithUTF8String:ivarName]);
+    
+    <span style="color:#75715e">// 动态变量控制
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([propertyName isEqualToString:<span style="color:#e6db74">@&#34;_name&#34;</span>]) 
+    {
+        object_setIvar(self.aclass, var, <span style="color:#e6db74">@&#34;shen&#34;</span>);
+        <span style="color:#66d9ef">break</span>;
+    }
+}
+<span style="color:#75715e">// 获取属性列表
+</span><span style="color:#75715e"></span>objc_property_t <span style="color:#f92672">*</span>propertyList <span style="color:#f92672">=</span> class_copyPropertyList([self <span style="color:#66d9ef">class</span>], <span style="color:#f92672">&amp;</span>count);
+<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>; i<span style="color:#f92672">&lt;</span>count; i<span style="color:#f92672">++</span>) 
+{
+    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>propertyName <span style="color:#f92672">=</span> property_getName(propertyList[i]);
+    NSLog(<span style="color:#e6db74">@&#34;propertyName----&gt;%@&#34;</span>, [NSString stringWithUTF8String:propertyName]);
+    
+    <span style="color:#75715e">// 属性信息
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> property_attributes <span style="color:#f92672">=</span> property_getAttributes(property);
+    NSLog(<span style="color:#e6db74">@&#34;%@&#34;</span>, [NSString stringWithUTF8String:property_attributes]);
+    <span style="color:#75715e">// 从属性信息中提取属性类型
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> property_type <span style="color:#f92672">=</span> property_copyAttributeValue(property, <span style="color:#e6db74">&#34;T&#34;</span>);
+    NSLog(<span style="color:#e6db74">@&#34;%@&#34;</span>, [NSString stringWithUTF8String:property_type]);
+}
+<span style="color:#75715e">// 获取方法列表
+</span><span style="color:#75715e"></span>Method <span style="color:#f92672">*</span>methodList <span style="color:#f92672">=</span> class_copyMethodList([self <span style="color:#66d9ef">class</span>], <span style="color:#f92672">&amp;</span>count);
+<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i; i<span style="color:#f92672">&lt;</span>count; i<span style="color:#f92672">++</span>) 
+{
+    Method method <span style="color:#f92672">=</span> methodList[i];
+    NSLog(<span style="color:#e6db74">@&#34;methodName----&gt;%@&#34;</span>, NSStringFromSelector(method_getName(method)));
+}
+<span style="color:#75715e">// 获取协议列表
+</span><span style="color:#75715e"></span>__unsafe_unretained Protocol <span style="color:#f92672">**</span>protocolList <span style="color:#f92672">=</span> class_copyProtocolList([self <span style="color:#66d9ef">class</span>], <span style="color:#f92672">&amp;</span>count);
+<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i; i<span style="color:#f92672">&lt;</span>count; i<span style="color:#f92672">++</span>) 
+{
+    Protocol <span style="color:#f92672">*</span>myProtocal <span style="color:#f92672">=</span> protocolList[i];
+    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>protocolName <span style="color:#f92672">=</span> protocol_getName(myProtocal);
+    NSLog(<span style="color:#e6db74">@&#34;protocolName----&gt;%@&#34;</span>, [NSString stringWithUTF8String:protocolName]);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="动态关联属性">动态关联属性</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">// 全局变量，其地址作为关联的key
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">char</span> associatedObjectKey;
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">* 设置关联对象及属性
+</span><span style="color:#75715e">* id object        要关联的对象
+</span><span style="color:#75715e">* const void *key  关联属性所需的唯一Key
+</span><span style="color:#75715e">* id value         关联的值
+</span><span style="color:#75715e">* objc_AssociationPolicy 关联策略
+</span><span style="color:#75715e">*/</span>
+objc_setAssociatedObject(target, <span style="color:#f92672">&amp;</span>associatedObjectKey, <span style="color:#e6db74">@&#34;添加的字符串属性&#34;</span>, OBJC_ASSOCIATION_RETAIN_NONATOMIC); 
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">* 获取关联对象的属性
+</span><span style="color:#75715e">* id object        关联的对象
+</span><span style="color:#75715e">* const void *key  关联所需的唯一Key
+</span><span style="color:#75715e">*/</span>
+NSString <span style="color:#f92672">*</span>string <span style="color:#f92672">=</span> objc_getAssociatedObject(target, <span style="color:#f92672">&amp;</span>associatedObjectKey);
+NSLog(<span style="color:#e6db74">@&#34;AssociatedObject = %@&#34;</span>, string);
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">// 关联策略
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">enum</span> {
+    OBJC_ASSOCIATION_ASSIGN <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+    OBJC_ASSOCIATION_RETAIN_NONATOMIC <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>, 
+    OBJC_ASSOCIATION_COPY_NONATOMIC <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>,
+    OBJC_ASSOCIATION_RETAIN <span style="color:#f92672">=</span> <span style="color:#ae81ff">01401</span>,
+    OBJC_ASSOCIATION_COPY <span style="color:#f92672">=</span> <span style="color:#ae81ff">01403</span> 
+};
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>这种关联的应用最常见的就是给Catergory添加属性：</p>
+
+<p>(编译Category的.h文件声明的@Property通过，但如果没有Runtime处理，进行赋值取值，运行后则报错。)</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">Person</span> (Name)
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">copy</span> , <span style="color:#66d9ef">nonatomic</span>) NSString <span style="color:#f92672">*</span> name;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#75715e">#import &lt;objc/runtime.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">Person</span> (Name)
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">char</span> key_name;
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">setName:</span>(NSString <span style="color:#f92672">*</span>)name  {
+    objc_setAssociatedObject(self, <span style="color:#f92672">&amp;</span>key_name, name, OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+- (NSString <span style="color:#f92672">*</span>)<span style="color:#a6e22e">name</span>  {
+    <span style="color:#66d9ef">return</span> objc_getAssociatedObject(self, <span style="color:#f92672">&amp;</span>key_name);
+}
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="动态添加方法">动态添加方法</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">* 动态添加方法
+</span><span style="color:#75715e">* Class cls     需要动态添加方法的类
+</span><span style="color:#75715e">* SEL name      动态添加的方法的方法名
+</span><span style="color:#75715e">* IMP imp       方法的实现，C方法的方法实现可以直接获得；
+</span><span style="color:#75715e">*                         OC方法可以用+(IMP)instanceMethodForSelector:(SEL)aSelector;获得方法的实现
+</span><span style="color:#75715e">* &#34;v@:&#34;         &#34;v@:&#34; 含义:　v代表无返回值void，如果是i则代表int；
+</span><span style="color:#75715e">*                           @代表 id sel;
+</span><span style="color:#75715e">*                           :代表 SEL _cmd;      
+</span><span style="color:#75715e">*               “v@:@@” :两个参数的没有返回值。
+</span><span style="color:#75715e">*/</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)runtime_methods_add:(<span style="color:#66d9ef">id</span>)sender {
+    class_addMethod([self.aclass <span style="color:#66d9ef">class</span>], <span style="color:#66d9ef">@selector</span>(canDo), (<span style="color:#66d9ef">IMP</span>)candoSomething, <span style="color:#e6db74">&#34;v@:@&#34;</span>);
+}
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">* 动态添加的C方法
+</span><span style="color:#75715e">*/</span>
+<span style="color:#66d9ef">void</span> candoSomething(<span style="color:#66d9ef">id</span> self , <span style="color:#66d9ef">SEL</span> _cmd, NSString <span style="color:#f92672">*</span> str) {
+    NSLog(<span style="color:#e6db74">@&#34;i can do %@&#34;</span>, str);
+}
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">* 隐式调用添加的方法
+</span><span style="color:#75715e">*/</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)reactDoAction {
+    <span style="color:#66d9ef">if</span> ([self.aclass respondsToSelector:<span style="color:#66d9ef">@selector</span>(canDo)]) {
+        [self.aclass performSelector:<span style="color:#66d9ef">@selector</span>(canDo) withObject:<span style="color:#e6db74">@&#34;somethingStr&#34;</span>];
+    } <span style="color:#66d9ef">else</span> {
+        NSLog(<span style="color:#e6db74">@&#34;sorry,i don&#39;t have this method&#34;</span>);
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>动态添加方法，也可以对于之前消息发送的文章所述消息发送过程中的拦截调用进行处理：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">// 在外部隐式调用不存在的方法,进入拦截
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)handle  {
+    [target performSelector:<span style="color:#66d9ef">@selector</span>(someAction:) withObject:<span style="color:#e6db74">@&#34;test&#34;</span>];
+}
+<span style="color:#75715e">// 在target对象内部重写拦截调用的方法，动态添加方法
+</span><span style="color:#75715e"></span><span style="color:#f92672">+</span> (<span style="color:#66d9ef">BOOL</span>)resolveInstanceMethod:(<span style="color:#66d9ef">SEL</span>)sel {
+    <span style="color:#75715e">// 给本类动态添加一个方法
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([NSStringFromSelector(sel) isEqualToString:<span style="color:#e6db74">@&#34;someAction:&#34;</span>])  {
+        class_addMethod(self, sel, (<span style="color:#66d9ef">IMP</span>)runAddMethod, <span style="color:#e6db74">&#34;v@:@&#34;</span>);
+    }
+    <span style="color:#66d9ef">return</span> YES;
+}
+<span style="color:#66d9ef">void</span> runAddMethod(<span style="color:#66d9ef">id</span> self, <span style="color:#66d9ef">SEL</span> _cmd, NSString <span style="color:#f92672">*</span>str) 
+{
+    <span style="color:#75715e">// 该方法即@selector(someAction:)的实现，成功搞定原本的闪退问题。
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 后续逻辑处理（或者是本该调用的方法的实现）
+</span><span style="color:#75715e"></span>}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="动态方法交换-method-swizzling">动态方法交换 Method Swizzling</h4>
+
+<p>方法交换，本质是两个方法的实现互换，以下为简单的实现代码：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">// 测试调用
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)test  {
+    [self runtime_methods_exchange:nil];
+    [self firstAction];
+    [self secondAction];
+}
+<span style="color:#75715e">// 动态交换方法
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)runtime_methods_Exchange:(<span style="color:#66d9ef">id</span>)sender {
+    <span style="color:#75715e">// 获取两个方法的实现
+</span><span style="color:#75715e"></span>    Method method1 <span style="color:#f92672">=</span> class_getInstanceMethod([self <span style="color:#66d9ef">class</span>], <span style="color:#66d9ef">@selector</span>(firstAction));
+    Method method2 <span style="color:#f92672">=</span> class_getInstanceMethod([self <span style="color:#66d9ef">class</span>], <span style="color:#66d9ef">@selector</span>(secondAction));
+    <span style="color:#75715e">// 交换两个方法的实现
+</span><span style="color:#75715e"></span>    method_exchangeImplementations(method1, method2);
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)firstAction  {
+    NSLog(<span style="color:#e6db74">@&#34;this is first.&#34;</span>);
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)secondAction  {
+    NSLog(<span style="color:#e6db74">@&#34;this is second.&#34;</span>);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="黑魔法-method-swizzling">黑魔法 - Method Swizzling</h4>
+
+<p>对于Method Swizzling使用规范，以及另一种使用方法，附上Mattt前辈在NSHipster上的代码：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;UIViewController+swizzling.h&#34;
+</span><span style="color:#75715e">#import &lt;objc/runtime.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">UIViewController</span> (swizzling)
+<span style="color:#75715e">// load方法会在类第一次加载的时候被调用
+</span><span style="color:#75715e">// 调用的时间比较靠前，适合在这个方法里做方法交换
+</span><span style="color:#75715e"></span>+ (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">load</span> {
+    <span style="color:#75715e">//方法交换应该被保证，在程序中只会执行一次
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">static</span> dispatch_once_t onceToken;
+    dispatch_once(<span style="color:#f92672">&amp;</span>onceToken, <span style="color:#f92672">^</span>{
+        <span style="color:#75715e">// 获得viewController的生命周期方法的selector
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">SEL</span> systemSel <span style="color:#f92672">=</span> <span style="color:#66d9ef">@selector</span>(viewWillAppear:);
+        <span style="color:#75715e">// 自己实现的将要被交换的方法的selector
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">SEL</span> swizzSel <span style="color:#f92672">=</span> <span style="color:#66d9ef">@selector</span>(swiz_viewWillAppear:);
+        <span style="color:#75715e">// 两个方法的Method
+</span><span style="color:#75715e"></span>        Method systemMethod <span style="color:#f92672">=</span> class_getInstanceMethod([self <span style="color:#66d9ef">class</span>], systemSel);
+        Method swizzMethod <span style="color:#f92672">=</span> class_getInstanceMethod([self <span style="color:#66d9ef">class</span>], swizzSel);
+        <span style="color:#75715e">// 首先动态添加方法，实现是被交换的方法，返回值表示添加成功还是失败
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">BOOL</span> isAdd <span style="color:#f92672">=</span> class_addMethod(self, systemSel, method_getImplementation(swizzMethod), method_getTypeEncoding(swizzMethod));
+        <span style="color:#66d9ef">if</span> (isAdd) {
+            <span style="color:#75715e">// 如果成功，说明类中不存在这个方法的实现
+</span><span style="color:#75715e"></span>            <span style="color:#75715e">// 将被交换方法的实现替换到这个并不存在的实现
+</span><span style="color:#75715e"></span>            class_replaceMethod(self, swizzSel, method_getImplementation(systemMethod), method_getTypeEncoding(systemMethod));
+        } <span style="color:#66d9ef">else</span> {
+            <span style="color:#75715e">//否则，交换两个方法的实现
+</span><span style="color:#75715e"></span>            method_exchangeImplementations(systemMethod, swizzMethod);
+        }
+      });
+}
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">swiz_viewWillAppear:</span>(<span style="color:#66d9ef">BOOL</span>)animated {
+    <span style="color:#75715e">//这时候调用自己，看起来像是死循环
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//但是其实自己的实现已经被替换了
+</span><span style="color:#75715e"></span>    [self swiz_viewWillAppear:animated];
+    NSLog(<span style="color:#e6db74">@&#34;swizzle&#34;</span>);
+}
+<span style="color:#66d9ef">@end</span>
+  
+<span style="color:#75715e">// 在一个自己定义的viewController中重写viewWillAppear：
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewWillAppear:(<span style="color:#66d9ef">BOOL</span>)animated {
+    [super viewWillAppear:animated];
+    NSLog(<span style="color:#e6db74">@&#34;viewWillAppear&#34;</span>);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>方法交换是实现AOP面向切面编程思想的最佳技术。既然是切面，交换完再调回交换。也有其他的用法，尽量保证只交换一次的情况，这就需要我们酌情处理。</p>
+
+<p>method swizzling需要注意的一些问题：</p>
+
+<blockquote>
+<p><strong>Swizzling应该总是在+load中执行</strong>
+在Objective-C中，运行时会自动调用每个类的两个方法。+load会在类初始加载时调用，+initialize会在第一次调用类的类方法或实例方法之前被调用。这两个方法是可选的，且只有在实现了它们时才会被调用。由于method swizzling会影响到类的全局状态，因此要尽量避免在并发处理中出现竞争的情况。+load能保证在类的初始化过程中被加载，并保证这种改变应用级别的行为的一致性。相比之下，+initialize在其执行时不提供这种保证—事实上，如果在应用中没为给这个类发送消息，则它可能永远不会被调用。</p>
+
+<p><strong>Swizzling应该总是在dispatch_once中执行</strong>
+与上面相同，因为swizzling会改变全局状态，所以我们需要在运行时采取一些预防措施。原子性就是这样一种措施，它确保代码只被执行一次，不管有多少个线程。GCD的dispatch_once可以确保这种行为，我们应该将其作为method swizzling的最佳实践。</p>
+
+<p><strong>选择器、方法与实现</strong>
+在Objective-C中，选择器(selector)、方法(method)和实现(implementation)是运行时中一个特殊点，虽然在一般情况下，这些术语更多的是用在消息发送的过程描述中。
+以下是Objective-C Runtime Reference中的对这几个术语一些描述：</p>
+
+<p><strong>Selector(typedef struct objc_selector * SEL)</strong>：
+用于在运行时中表示一个方法的名称。一个方法选择器是一个C字符串，它是在Objective-C运行时被注册的。选择器由编译器生成，并且在类被加载时由运行时自动做映射操作。</p>
+
+<p><strong>Method(typedef struct objc_method * Method)</strong>：
+在类定义中表示方法的类型</p>
+
+<p><strong>Implementation(typedef id ( *IMP)(id, SEL, …))</strong>：
+这是一个指针类型，指向方法实现函数的开始位置。这个函数使用为当前CPU架构实现的标准C调用规范。每一个参数是指向对象自身的指针(self)，第二个参数是方法选择器。然后是方法的实际参数。
+理解这几个术语之间的关系最好的方式是：一个类维护一个运行时可接收的消息分发表；分发表中的每个入口是一个方法(Method)，其中key是一个特定名称，即选择器(SEL)，其对应一个实现(IMP)，即指向底层C函数的指针。
+为了swizzle一个方法，我们可以在分发表中将一个方法的现有的选择器映射到不同的实现，而将该选择器对应的原始实现关联到一个新的选择器中。</p>
+</blockquote>
+
+<p>Method Swizzling 通常被称作“黑魔法”，操作不当，很容易产生不可预知的行为和无法预见的后果，我们对它的使用应该谨慎并且注意规范。</p>
+
+<h3 id="runtime与kvo">Runtime与KVO</h3>
+
+<p>KVO我们都使用过，这是经典的观察者模式，举个简单的使用例子：</p>
+
+<p><strong>Person.h</strong></p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">Person</span> : <span style="color:#a6e22e">NSObject</span>
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">assign</span>) <span style="color:#66d9ef">double</span> money;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p><strong>Person.m</strong></p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;Person.h&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">Person</span>
+- (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">init</span> {
+    <span style="color:#66d9ef">if</span> (self <span style="color:#f92672">=</span> [super init]) {
+        _money <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000</span>;
+    }
+    <span style="color:#66d9ef">return</span> self;
+}
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p><strong>Bank.h</strong></p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">Bank</span> : <span style="color:#a6e22e">NSObject</span>
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p><strong>Bank.m</strong></p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;Bank.h&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">Bank</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">observeValueForKeyPath:</span>(NSString <span style="color:#f92672">*</span>)keyPath <span style="color:#a6e22e">ofObject:</span>(<span style="color:#66d9ef">id</span>)object <span style="color:#a6e22e">change:</span>(NSDictionary<span style="color:#f92672">&lt;</span>NSKeyValueChangeKey,<span style="color:#66d9ef">id</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">*</span>)change <span style="color:#a6e22e">context:</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)context {
+    NSLog(<span style="color:#e6db74">@&#34;keyPath : %@&#34;</span>, keyPath);
+    NSLog(<span style="color:#e6db74">@&#34;object : %@&#34;</span>, object);
+    NSLog(<span style="color:#e6db74">@&#34;change : %@&#34;</span>, change);
+    NSLog(<span style="color:#e6db74">@&#34;context : %@&#34;</span>, context);
+}
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p><strong>开启KVO观察</strong></p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">ViewController</span> ()
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) Person <span style="color:#f92672">*</span> person;
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) Bank <span style="color:#f92672">*</span> bank;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">ViewController</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">viewDidLoad</span> {
+    [super viewDidLoad];
+    self.person <span style="color:#f92672">=</span> [[Person alloc] init];
+    self.bank <span style="color:#f92672">=</span> [[Bank alloc] init];
+    [self.person addObserver:self.bank forKeyPath:<span style="color:#e6db74">@&#34;money&#34;</span> options:NSKeyValueObservingOptionOld <span style="color:#f92672">|</span> NSKeyValueObservingOptionNew context:<span style="color:#e6db74">@&#34;PERSON_MONEY_OBSERVER&#34;</span>];
+}
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">dealloc</span> { 
+    [self.person removeObserver:self.bank forKeyPath:<span style="color:#e6db74">@&#34;money&#34;</span>];
+}
+
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">touchesBegan:</span>(NSSet<span style="color:#f92672">&lt;</span>UITouch <span style="color:#f92672">*&gt;</span> <span style="color:#f92672">*</span>)touches <span style="color:#a6e22e">withEvent:</span>(UIEvent <span style="color:#f92672">*</span>)event {
+    [super touchesBegan:touches withEvent:event];
+    <span style="color:#66d9ef">double</span> payMoney <span style="color:#f92672">=</span> <span style="color:#ae81ff">124.f</span>;
+    self.person.money <span style="color:#f92672">-=</span> payMoney;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p><strong>剖析</strong></p>
+
+<p>给Person对象添加观察者Bank对象，当Person对象的money属性改变后，通知Bank对象。我们在touchesBegan中添加断点，lldb中执行命令：<code>po object_getClassName(self.person)</code>，可以看到结果：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+(lldb) po object_getClassName(self.person)
+<span style="color:#e6db74">&#34;NSKVONotifying_Person&#34;</span>
+<span style="color:#ae81ff">2017</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">17</span> <span style="color:#ae81ff">14</span><span style="color:#f92672">:</span><span style="color:#ae81ff">15</span><span style="color:#f92672">:</span><span style="color:#ae81ff">14.876</span> RuntimeTest[<span style="color:#ae81ff">1141</span><span style="color:#f92672">:</span><span style="color:#ae81ff">527611</span>] XPC connection interrupted
+<span style="color:#ae81ff">2017</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">17</span> <span style="color:#ae81ff">14</span><span style="color:#f92672">:</span><span style="color:#ae81ff">15</span><span style="color:#f92672">:</span><span style="color:#ae81ff">14.875</span> RuntimeTest[<span style="color:#ae81ff">1141</span><span style="color:#f92672">:</span><span style="color:#ae81ff">527571</span>] keyPath : money
+<span style="color:#ae81ff">2017</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">17</span> <span style="color:#ae81ff">14</span><span style="color:#f92672">:</span><span style="color:#ae81ff">15</span><span style="color:#f92672">:</span><span style="color:#ae81ff">14.877</span> RuntimeTest[<span style="color:#ae81ff">1141</span><span style="color:#f92672">:</span><span style="color:#ae81ff">527571</span>] object : <span style="color:#f92672">&lt;</span>Person: <span style="color:#ae81ff">0x1561e2f0</span><span style="color:#f92672">&gt;</span>
+<span style="color:#ae81ff">2017</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">17</span> <span style="color:#ae81ff">14</span><span style="color:#f92672">:</span><span style="color:#ae81ff">15</span><span style="color:#f92672">:</span><span style="color:#ae81ff">14.879</span> RuntimeTest[<span style="color:#ae81ff">1141</span><span style="color:#f92672">:</span><span style="color:#ae81ff">527571</span>] change : {
+    kind <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+    new <span style="color:#f92672">=</span> <span style="color:#ae81ff">876</span>;
+    old <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000</span>;
+}
+<span style="color:#ae81ff">2017</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">17</span> <span style="color:#ae81ff">14</span><span style="color:#f92672">:</span><span style="color:#ae81ff">15</span><span style="color:#f92672">:</span><span style="color:#ae81ff">14.879</span> RuntimeTest[<span style="color:#ae81ff">1141</span><span style="color:#f92672">:</span><span style="color:#ae81ff">527571</span>] context : PERSON_MONEY_OBSERVER
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>很明显，self.person的实际类型是NSKVONotifying_Person，这一变化是在运行时进行的（将person对象的类型替换）。</p>
+
+<p>NSKVONotifying_XXX是一个派生类，Runtime会创建一个NSKVONotifying_Person类，NSKVONotifying_Person继承于Person类，并重写了被监听属性的setter方法。</p>
+
+<p>在setter方法中调用<code>[self willChangeValueForKey:@&quot;&quot;];</code>与<code>[self didChangeValueForKey:@&quot;&quot;];</code>前者被调用后，向观察者发送旧的值Old；后者调用后，向观察者发送新的值New。</p>
+
+<p>附Apple官方文档中的说明：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setBalance:(<span style="color:#66d9ef">double</span>)theBalance {
+    <span style="color:#66d9ef">if</span> (theBalance <span style="color:#f92672">!=</span> _balance) {
+        [self willChangeValueForKey:<span style="color:#e6db74">@&#34;balance&#34;</span>];
+        _balance <span style="color:#f92672">=</span> theBalance;
+        [self didChangeValueForKey:<span style="color:#e6db74">@&#34;balance&#34;</span>];
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+		</div>
+		<footer class="post__footer">
+			
+<div class="post__tags tags clearfix">
+	<svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5 0 11V3C0 1.5.8.8.8.8S1.5 0 3 0h8c1.5 0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+	<ul class="tags__list">
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/objc/" rel="tag">objc</a>
+		</li>
+	</ul>
+</div>
+		</footer>
+	</article>
+</main>
+
+<div class="authorbox clearfix">
+	<div class="authorbox__header">
+		<span class="authorbox__name">About sean</span>
+	</div>
+	<div class="authorbox__description">
+		a manager and coder in internet ltd.
+	</div>
+</div>
+
+<nav class="pager flex">
+	<div class="pager__item pager__item--prev">
+		<a class="pager__link" href="/ios/oc%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6/" rel="prev">
+			<span class="pager__subtitle">«&thinsp;Previous</span>
+			<p class="pager__title">Objective-C:消息机制</p>
+		</a>
+	</div>
+	<div class="pager__item pager__item--next">
+		<a class="pager__link" href="/ios/ocruntimenskeyedarchiver/" rel="next">
+			<span class="pager__subtitle">Next&thinsp;»</span>
+			<p class="pager__title">Objective-C:Runtime&#43;自动化归档</p>
+		</a>
+	</div>
+</nav>
+
+
+
+			</div>
+			<aside class="sidebar"><div class="widget-search widget">
+	<form class="widget-search__form" role="search" method="get" action="https://google.com/search">
+		<label>
+			<input class="widget-search__field" type="search" placeholder="SEARCH..." value="" name="q" aria-label="SEARCH...">
+		</label>
+		<input class="widget-search__submit" type="submit" value="Search">
+		<input type="hidden" name="sitesearch" value="http://sean.vip/" />
+	</form>
+</div>
+<div class="widget-categories widget">
+	<h4 class="widget__title">Categories</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item">
+				<a class="widget__link" href="/categories/ios/">iOS</a>
+			</li>
+		</ul>
+	</div>
+</div>
+<div class="widget-taglist widget">
+	<h4 class="widget__title">Tags</h4>
+	<div class="widget__content">
+		<a class="widget-taglist__link widget__link btn" href="/tags/block/" title="block">block</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/gcd/" title="GCD">GCD</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/objc/" title="objc">objc</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/runloop/" title="RunLoop">RunLoop</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="二维码">二维码</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AD%98%E5%82%A8/" title="存储">存储</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AE%89%E5%85%A8/" title="安全">安全</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" title="数据库">数据库</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E7%9B%B8%E6%9C%BA/" title="相机">相机</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/" title="计时器">计时器</a>
+	</div>
+</div>
+<div class="widget-social widget">
+	<h4 class="widget-social__title widget__title">Social</h4>
+	<div class="widget-social__content widget__content">
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="GitHub" rel="noopener noreferrer" href="https://github.com/sean-tech" target="_blank">
+				<svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0c-106.1 0-192 85.8-192 191.7 0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2 0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8 0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7 0 0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4 0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5 0 25.6-.2 46.3-.2 52.6 0 5.1 3.5 11.1 13.2 9.2 76.2-25.5 131.2-97.3 131.2-182 0-105.9-86-191.7-192-191.7z"/></svg>
+				<span>GitHub</span>
+			</a>
+		</div>
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="Email" href="mailto:sean.vip.contact@foxmail.com">
+				<svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16-256-16h-16-384-16zm347 16-139 92.5-139-92.5zm-148 125.5 9 5.5 9-5.5 167-111.5v210h-352v-210z"/></svg>
+				<span>sean.vip.contact@foxmail.com</span>
+			</a>
+		</div>
+
+		
+	</div>
+</div>
+</aside>
+		</div>
+		<footer class="footer">
+	<div class="container footer__container flex">
+		
+<div class="footer__links">
+	<a class="footer__link" href="/about/">About Me</a>
+</div>
+		<div class="footer__copyright">
+			&copy; 2020 John Doe.
+			<span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span>
+		</div>
+	</div>
+</footer>
+	</div>
+<script async defer src="/js/menu.js"></script>
+<script src="/js/custom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async></script>
+</body>
+</html>

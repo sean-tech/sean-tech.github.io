@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Objective-C:消息机制 - sean</title>
+	<script>(function(d,e){d[e]=d[e].replace("no-js","js");})(document.documentElement,"className");</script>
+	<meta name="description" content="Objective-C消息机制">
+		<meta property="og:title" content="Objective-C:消息机制" />
+<meta property="og:description" content="Objective-C消息机制" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://sean.vip/ios/oc%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6/" />
+<meta property="article:published_time" content="2016-10-28T14:09:57&#43;08:00"/>
+<meta property="article:modified_time" content="2016-10-28T14:09:57&#43;08:00"/>
+
+		
+<meta itemprop="name" content="Objective-C:消息机制">
+<meta itemprop="description" content="Objective-C消息机制">
+
+
+<meta itemprop="datePublished" content="2016-10-28T14:09:57&#43;08:00" />
+<meta itemprop="dateModified" content="2016-10-28T14:09:57&#43;08:00" />
+<meta itemprop="wordCount" content="0">
+
+
+
+<meta itemprop="keywords" content="objc," />
+
+		<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Objective-C:消息机制"/>
+<meta name="twitter:description" content="Objective-C消息机制"/>
+
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<link rel="stylesheet" href="/css/custom.css">
+	<link rel="shortcut icon" href="/favicon.ico">
+		
+</head>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container header__container">
+		
+	<div class="logo">
+		<a class="logo__link" href="/" title="sean" rel="home">
+			<div class="logo__title">sean</div>
+			<div class="logo__tagline">sean&#39;s zone</div>
+		</a>
+	</div>
+		<div class="divider"></div>
+	</div>
+</header>
+
+		<div class="wrapper flex">
+			<div class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">Objective-C:消息机制</h1>
+			<div class="post__meta meta">
+<div class="meta__item-datetime meta__item">
+	<svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class="meta__text" datetime="2016-10-28T14:09:57&#43;08:00">2016-10-28</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2l1 2h8v11h-16v-13z"/></svg><span class="meta__text"><a class="meta__link" href="/categories/ios/" rel="category">iOS</a>
+	</span>
+</div></div>
+		</header>
+<div class="post__toc toc">
+	<div class="toc__title">Page content</div>
+	<div class="toc__menu">
+		<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#消息发送">消息发送</a></li>
+<li><a href="#类结构与isa指针">类结构与isa指针</a></li>
+<li><a href="#消息发送的过程">消息发送的过程</a></li>
+<li><a href="#消息发送过程中的拦截调用">消息发送过程中的拦截调用</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+	</div>
+</div>
+<div class="content post__content clearfix">
+			<p style="font-family:verdana;font-size:120%;color:gray" ,="" align="left">OC的消息发送石沉大海，就容易崩溃</p>
+
+<h3 id="消息发送">消息发送</h3>
+
+<p>Objective-C 中 的方法调用，其本质是消息的发送，在编译时程序不查找要执行的函数，必须等到真正运行时，程序才查找要执行的函数。</p>
+
+<p>为这一特性提供支撑的，就是消息发送机制。</p>
+
+<p>在OC中调用方法，以如下形式：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e">#import &#34;Obj.h&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> main(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> argv[]) {
+    <span style="color:#66d9ef">@autoreleasepool</span> {
+        Obj <span style="color:#f92672">*</span> obj <span style="color:#f92672">=</span> [[Obj alloc] init];
+        [obj doSomething];
+    }
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>通过对象名 obj 调用方法 doSomething，我们将main.m编译链接处理一下：
+打开终端，进入main.m所在文件夹，输入clang编译命令：clang -rewrite-objc main.m，查看编译生成的main文件（拖拽到最下方，查看main函数）：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">// - (void)doSomething;
+</span><span style="color:#75715e"></span><span style="color:#75715e">/* @end */</span>
+<span style="color:#66d9ef">int</span> main(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> argv[]) {
+    <span style="color:#75715e">/* @autoreleasepool */</span> { __AtAutoreleasePool __autoreleasepool; 
+        Obj <span style="color:#f92672">*</span> obj <span style="color:#f92672">=</span> ((Obj <span style="color:#f92672">*</span>(<span style="color:#f92672">*</span>)(<span style="color:#66d9ef">id</span>, <span style="color:#66d9ef">SEL</span>))(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)objc_msgSend)((<span style="color:#66d9ef">id</span>)((Obj <span style="color:#f92672">*</span>(<span style="color:#f92672">*</span>)(<span style="color:#66d9ef">id</span>, <span style="color:#66d9ef">SEL</span>))(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)objc_msgSend)((<span style="color:#66d9ef">id</span>)objc_getClass(<span style="color:#e6db74">&#34;Obj&#34;</span>), sel_registerName(<span style="color:#e6db74">&#34;alloc&#34;</span>)), sel_registerName(<span style="color:#e6db74">&#34;init&#34;</span>));
+        ((<span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>)(<span style="color:#66d9ef">id</span>, <span style="color:#66d9ef">SEL</span>))(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)objc_msgSend)((<span style="color:#66d9ef">id</span>)obj, sel_registerName(<span style="color:#e6db74">&#34;doSomething&#34;</span>));
+    }
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> IMAGE_INFO { <span style="color:#66d9ef">unsigned</span> version; <span style="color:#66d9ef">unsigned</span> flag; } _OBJC_IMAGE_INFO <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">2</span> };
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>可知，OC的方法调用，会在编译链接后，被处理为：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+objc_msgSend(obj,<span style="color:#66d9ef">@selector</span>(doSomething));
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>我们可以直接使用底层的C函数来进行方法调用：</p>
+
+<ol>
+<li>打开编译器Build Settings 将消息发送代码检查Enable Strict Checking of objc_msgSend Calls选项置为NO;</li>
+<li>在Obj类中声明方法：- (void)doSomething:(NSString *)str;</li>
+<li>导入头文件#import ，调用：</li>
+</ol>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+objc_msgSend(obj, <span style="color:#66d9ef">@selector</span>(doSomething:), <span style="color:#e6db74">@&#34;some obj&#34;</span>);
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>打印结果：doSomething with str : some obj</p>
+
+<p>对于继承自NSObject的obj对象（不特指obj）：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">NSObject</span>  {
+    <span style="color:#66d9ef">Class</span> isa  OBJC_ISA_AVAILABILITY;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>存在一个Class类型的isa指针，该指针的类型包含的信息就是这篇文章的重点</p>
+
+<h3 id="类结构与isa指针">类结构与isa指针</h3>
+
+<p>isa指针的Class类型结构：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> objc_class <span style="color:#f92672">*</span><span style="color:#66d9ef">Class</span>;
+<span style="color:#66d9ef">struct</span> objc_class {
+  <span style="color:#66d9ef">Class</span> isa;           <span style="color:#75715e">// 实例的isa指向类对象，类对象的isa指向元类
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">Class</span> super_class ;  <span style="color:#75715e">// 指向其父类
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>name ;   <span style="color:#75715e">// 类名
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">long</span> version ;       <span style="color:#75715e">// 类的版本信息，初始化默认为0，可以通过runtime函数class_setVersion和class_getVersion进行修改、读取
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">long</span> info;           <span style="color:#75715e">// 一些标识信息,如CLS_CLASS (0x1L) 表示该类为普通 class ，其中包含对象方法和成员变量;CLS_META (0x2L) 表示该类为 metaclass，其中包含类方法;
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">long</span> instance_size ; <span style="color:#75715e">// 该类的实例变量大小(包括从父类继承下来的实例变量);
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> objc_ivar_list <span style="color:#f92672">*</span>ivars;           <span style="color:#75715e">// 用于存储每个成员变量的地址
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> objc_method_list <span style="color:#f92672">**</span>methodLists ; <span style="color:#75715e">// 与 info 的一些标志位有关,如CLS_CLASS (0x1L),则存储对象方法，如CLS_META (0x2L)，则存储类方法;
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> objc_cache <span style="color:#f92672">*</span>cache;               <span style="color:#75715e">// 指向最近使用的方法的指针，一种优化，用于提升效率；调用过的方法存入缓存列表，下次调用先找缓存
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> objc_protocol_list <span style="color:#f92672">*</span>protocols;   <span style="color:#75715e">// 存储该类遵守的协议
+</span><span style="color:#75715e"></span>}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>对象的isa指针指向类，类中的isa指针指向元类，元类中的指针指向NSObject，这也是NSObject类是所有类的根类的原因。</p>
+
+<p>在该结构中，我们可以看到ivars 和methodLists字段。对于普通类，ivars中存储成员变量的信息，methodLists中存储对象方法信息；</p>
+
+<p>对于静态类，ivars中存储静态成员变量的信息，methodLists中存储类方法信息。</p>
+
+<h3 id="消息发送的过程">消息发送的过程</h3>
+
+<p>我们回到运行时对方法调用的处理中：</p>
+
+<p>objc_msgSend(obj,@selector(doSomething));其中@selector() 是SEL类型的方法选择器，SEL本身是一个int类型的地址，存放方法名字，每一个方法对应一个SEL，SEL是根据方法名字生成的，这也决定了OC中的方法不可重名。</p>
+
+<p>SEL的主要作用是快速通过方法名doSomething查找对应方法的函数指针，继而进行调用该函数。</p>
+
+<p>总结消息发送的过程：　　　　</p>
+
+<ol>
+<li>[obj doSomething]; 在编译时被处理为objc_msgSend(obj,@selector(doSomething));</li>
+<li>对于 objc_msgSend 函数，先通过obj的isa指针找到其class，在Class中查找函数列表methodLists；</li>
+<li>根据 SEL 在 methodLists 中找到 imp 指针（函数指针），执行函数；</li>
+<li>没有找到对应的imp指针，则根据 class 中的 super_class 指针，去父类中查找，继而上述到元类，根类，若根类中无此函数信息，则抛出 unrecognized selector sent to xxx 的异常，如果找到该函数指针，则执行。</li>
+<li>在 isa ——&gt; methodLists 之间，存有缓存优化，即有 cache 的实现，根据 isa 在 Class 中先去 cache 通过 SEL 查找对应的 method，若 cache 中未找到，再去 methodLists 中查找，若找到，则将 method 加入到 cache 中，节约了消息发送的时间成本。（猜测 cache 中 method 列表是以SEL为key通过hash表来存储的，这样能提高函数查找速度）。</li>
+</ol>
+
+<p>以上，就是OC的消息发送特性，它是Runtime的重要组成，决定了OC区别于C的动态特性。</p>
+
+<p>附：</p>
+
+<ol>
+<li>事件监听本质发送消息.但是发送消息是OC的特性，如果Swift中将一个函数声明称private,那么该函数不会被添加到方法列表中，如果在private前面加上@objc,那么该方法依然会被添加到方法列表中。</li>
+<li>重写父类的方法，并没有覆盖掉父类的方法，只是在当前类对象中找到了这个方法后就不再去父类中找。</li>
+<li>调用已经重写过的方法的父类的实现，使用super这个编译器标识，其作用是在运行时跳过在当前的类对象中寻找方法的过程。 　</li>
+</ol>
+
+<h3 id="消息发送过程中的拦截调用">消息发送过程中的拦截调用</h3>
+
+<p>在消息发送过程中，如果没有找到method，再抛出异常之前，运行时还会进一步处理，这不处理即：转向拦截调用。
+拦截调用，通过重写NSObject提供的四个方法来进行处理:</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">+</span> (<span style="color:#66d9ef">BOOL</span>)resolveClassMethod:(<span style="color:#66d9ef">SEL</span>)sel;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>当调用一个不存在的类方法时，会调用该方法，返回值默认为NO，重写为：加上自己的处理然后返回YES；</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">+</span> (<span style="color:#66d9ef">BOOL</span>)resolveInstanceMethod:(<span style="color:#66d9ef">SEL</span>)sel;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>该方法同上，区别在于处理的是实例方法；</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">id</span>)forwardingTargetForSelector:(<span style="color:#66d9ef">SEL</span>)aSelector;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>该方法将所调用的未找到的method，重定向到另一个声明了该method的类，需要返回拥有该方法的实例；</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)forwardInvocation:(NSInvocation <span style="color:#f92672">*</span>)anInvocation;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>该方法将所调用的未找到的method，打包成NSInvocation（即anInvocation），在该方法中进行自定义处理后，调用invokeWithTarget:方法，让另一个实例来触发；</p>
+
+<p>通过这四个方法，我们有机会对“未找到消息接受者”导致闪退进行处理，Runtime给我们提供了机会，也意味着“最后通牒”。</p>
+		</div>
+		<footer class="post__footer">
+			
+<div class="post__tags tags clearfix">
+	<svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5 0 11V3C0 1.5.8.8.8.8S1.5 0 3 0h8c1.5 0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+	<ul class="tags__list">
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/objc/" rel="tag">objc</a>
+		</li>
+	</ul>
+</div>
+		</footer>
+	</article>
+</main>
+
+<div class="authorbox clearfix">
+	<div class="authorbox__header">
+		<span class="authorbox__name">About sean</span>
+	</div>
+	<div class="authorbox__description">
+		a manager and coder in internet ltd.
+	</div>
+</div>
+
+<nav class="pager flex">
+	<div class="pager__item pager__item--prev">
+		<a class="pager__link" href="/ios/ocrunloop2/" rel="prev">
+			<span class="pager__subtitle">«&thinsp;Previous</span>
+			<p class="pager__title">Objective-C:RunLoop(应用)</p>
+		</a>
+	</div>
+	<div class="pager__item pager__item--next">
+		<a class="pager__link" href="/ios/ocruntime/" rel="next">
+			<span class="pager__subtitle">Next&thinsp;»</span>
+			<p class="pager__title">Objective-C:Runtime</p>
+		</a>
+	</div>
+</nav>
+
+
+
+			</div>
+			<aside class="sidebar"><div class="widget-search widget">
+	<form class="widget-search__form" role="search" method="get" action="https://google.com/search">
+		<label>
+			<input class="widget-search__field" type="search" placeholder="SEARCH..." value="" name="q" aria-label="SEARCH...">
+		</label>
+		<input class="widget-search__submit" type="submit" value="Search">
+		<input type="hidden" name="sitesearch" value="http://sean.vip/" />
+	</form>
+</div>
+<div class="widget-categories widget">
+	<h4 class="widget__title">Categories</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item">
+				<a class="widget__link" href="/categories/ios/">iOS</a>
+			</li>
+		</ul>
+	</div>
+</div>
+<div class="widget-taglist widget">
+	<h4 class="widget__title">Tags</h4>
+	<div class="widget__content">
+		<a class="widget-taglist__link widget__link btn" href="/tags/block/" title="block">block</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/gcd/" title="GCD">GCD</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/objc/" title="objc">objc</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/runloop/" title="RunLoop">RunLoop</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="二维码">二维码</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AD%98%E5%82%A8/" title="存储">存储</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AE%89%E5%85%A8/" title="安全">安全</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" title="数据库">数据库</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E7%9B%B8%E6%9C%BA/" title="相机">相机</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/" title="计时器">计时器</a>
+	</div>
+</div>
+<div class="widget-social widget">
+	<h4 class="widget-social__title widget__title">Social</h4>
+	<div class="widget-social__content widget__content">
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="GitHub" rel="noopener noreferrer" href="https://github.com/sean-tech" target="_blank">
+				<svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0c-106.1 0-192 85.8-192 191.7 0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2 0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8 0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7 0 0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4 0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5 0 25.6-.2 46.3-.2 52.6 0 5.1 3.5 11.1 13.2 9.2 76.2-25.5 131.2-97.3 131.2-182 0-105.9-86-191.7-192-191.7z"/></svg>
+				<span>GitHub</span>
+			</a>
+		</div>
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="Email" href="mailto:sean.vip.contact@foxmail.com">
+				<svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16-256-16h-16-384-16zm347 16-139 92.5-139-92.5zm-148 125.5 9 5.5 9-5.5 167-111.5v210h-352v-210z"/></svg>
+				<span>sean.vip.contact@foxmail.com</span>
+			</a>
+		</div>
+
+		
+	</div>
+</div>
+</aside>
+		</div>
+		<footer class="footer">
+	<div class="container footer__container flex">
+		
+<div class="footer__links">
+	<a class="footer__link" href="/about/">About Me</a>
+</div>
+		<div class="footer__copyright">
+			&copy; 2020 John Doe.
+			<span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span>
+		</div>
+	</div>
+</footer>
+	</div>
+<script async defer src="/js/menu.js"></script>
+<script src="/js/custom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async></script>
+</body>
+</html>

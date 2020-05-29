@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Objective-C:内存管理 - sean</title>
+	<script>(function(d,e){d[e]=d[e].replace("no-js","js");})(document.documentElement,"className");</script>
+	<meta name="description" content="Objective-C的内存管理">
+		<meta property="og:title" content="Objective-C:内存管理" />
+<meta property="og:description" content="Objective-C的内存管理" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://sean.vip/ios/oc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" />
+<meta property="article:published_time" content="2016-07-14T14:09:01&#43;08:00"/>
+<meta property="article:modified_time" content="2016-07-14T14:09:01&#43;08:00"/>
+
+		
+<meta itemprop="name" content="Objective-C:内存管理">
+<meta itemprop="description" content="Objective-C的内存管理">
+
+
+<meta itemprop="datePublished" content="2016-07-14T14:09:01&#43;08:00" />
+<meta itemprop="dateModified" content="2016-07-14T14:09:01&#43;08:00" />
+<meta itemprop="wordCount" content="0">
+
+
+
+<meta itemprop="keywords" content="objc," />
+
+		<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Objective-C:内存管理"/>
+<meta name="twitter:description" content="Objective-C的内存管理"/>
+
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<link rel="stylesheet" href="/css/custom.css">
+	<link rel="shortcut icon" href="/favicon.ico">
+		
+</head>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container header__container">
+		
+	<div class="logo">
+		<a class="logo__link" href="/" title="sean" rel="home">
+			<div class="logo__title">sean</div>
+			<div class="logo__tagline">sean&#39;s zone</div>
+		</a>
+	</div>
+		<div class="divider"></div>
+	</div>
+</header>
+
+		<div class="wrapper flex">
+			<div class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">Objective-C:内存管理</h1>
+			<div class="post__meta meta">
+<div class="meta__item-datetime meta__item">
+	<svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class="meta__text" datetime="2016-07-14T14:09:01&#43;08:00">2016-07-14</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2l1 2h8v11h-16v-13z"/></svg><span class="meta__text"><a class="meta__link" href="/categories/ios/" rel="category">iOS</a>
+	</span>
+</div></div>
+		</header>
+<div class="post__toc toc">
+	<div class="toc__title">Page content</div>
+	<div class="toc__menu">
+		<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#内存管理方式">内存管理方式</a>
+<ul>
+<li><a href="#引用计数">引用计数</a></li>
+<li><a href="#垃圾回收">垃圾回收</a></li>
+</ul></li>
+<li><a href="#autorelease">autorelease</a></li>
+<li><a href="#autoreleasepool">autoreleasePool</a>
+<ul>
+<li><a href="#nsautoreleasepool">NSAutoreleasePool</a></li>
+<li><a href="#autoreleasepool-1">@autoreleasepool{}</a></li>
+</ul></li>
+<li><a href="#setter与dealloc">setter与dealloc</a>
+<ul>
+<li><a href="#setter">setter</a></li>
+<li><a href="#dealloc">dealloc</a></li>
+</ul></li>
+<li><a href="#weak-unsafe-unretained-autoreleasing"><strong>weak,</strong> unsafe_unretained, __autoreleasing</a>
+<ul>
+<li><a href="#weak">__weak</a></li>
+<li><a href="#unsafe-unretained">__unsafe_unretained</a></li>
+<li><a href="#autoreleasing">__autoreleasing</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+	</div>
+</div>
+<div class="content post__content clearfix">
+			<p style="font-family:verdana;font-size:120%;color:gray" ,="" align="left">基于引用计数的内存管理</p>
+
+<h3 id="内存管理方式">内存管理方式</h3>
+
+<h4 id="引用计数">引用计数</h4>
+
+<p>iOS中使用retainCount来管理Objc对象的内存，通过retain来增加引用计数，release减少引用计数，retainCount检查引用计数，retainCount为0，该对象将被释放。</p>
+
+<h4 id="垃圾回收">垃圾回收</h4>
+
+<p>在MacOS的开发中，有垃圾回收的内存管理机制，不过在MacOS10.10左右，该机制被废弃，改用引用计数。</p>
+
+<h3 id="autorelease">autorelease</h3>
+
+<ol>
+<li>发送autorelease消息，表示将对象加入到autoreleasePool中；</li>
+<li>除了alloc、new、copy、mutableCopy等关键字的类构建方法（便利构造方法），会对对象自动发送autorelease消息，将其加入autoreleasePool中；</li>
+<li>被加入autoreleasePool中的对象，将在autoreleasePool销毁时，被发送release消息。</li>
+</ol>
+
+<h3 id="autoreleasepool">autoreleasePool</h3>
+
+<h4 id="nsautoreleasepool">NSAutoreleasePool</h4>
+
+<p>NSAutoreleasePool是MRC时代的旧的API，只能在MRC中使用，其用法如下：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+NSAutorelaesePool <span style="color:#f92672">*</span> pool <span style="color:#f92672">=</span> [NSAutorelaesePool new];
+    <span style="color:#75715e">// code here
+</span><span style="color:#75715e"></span>[pool <span style="color:#66d9ef">release</span>];
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>NSAutoreleasePool 在循环中要注意不能被break，否则对象无法释放。</p>
+
+<h4 id="autoreleasepool-1">@autoreleasepool{}</h4>
+
+<p>@autoreleasepool{} 是新的API，既可以在MRC中使用，也可以在ARC中使用，而且不必担心break，性能也比NSAutoreleasePool高：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@autoreleasepool</span> {
+    <span style="color:#75715e">// code here
+</span><span style="color:#75715e"></span>}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>autoreleasePool的创建和释放时机:</p>
+
+<p><img src="../../img/runloop_04.jpg" alt="runloop_04" /></p>
+
+<p>autoreleasePool的使用时机:</p>
+
+<ol>
+<li>程序不基于UIFramework（命令行项目）；</li>
+<li>循环内创建大量临时对象或者长期执行的任务中有大量临时对象；</li>
+<li>新线程开始执行时。</li>
+</ol>
+
+<h3 id="setter与dealloc">setter与dealloc</h3>
+
+<h4 id="setter">setter</h4>
+
+<p>MRC一个错误的setter示范：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setValue:(<span style="color:#66d9ef">id</span>)value  {   
+    [_value <span style="color:#66d9ef">release</span>];
+    _value <span style="color:#f92672">=</span> [value <span style="color:#66d9ef">retain</span>];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>当_value 和 value是同一个对象是，这种写法会导致value提前释放。
+安全的setter写法：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setValue:(<span style="color:#66d9ef">id</span>)value  {
+    <span style="color:#66d9ef">id</span> temp <span style="color:#f92672">=</span> _value<span style="color:#960050;background-color:#1e0010">；</span>
+    [value <span style="color:#66d9ef">retain</span>];
+    _value <span style="color:#f92672">=</span> value;
+    [temp <span style="color:#66d9ef">release</span>];
+}
+<span style="color:#75715e">// 或者
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setValue:(<span style="color:#66d9ef">id</span>)value  { 
+    <span style="color:#66d9ef">if</span> (_value <span style="color:#f92672">!=</span> value) {
+        [_value <span style="color:#66d9ef">release</span>];
+        _value <span style="color:#f92672">=</span> [value <span style="color:#66d9ef">retain</span>];
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="dealloc">dealloc</h4>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">MyBuffer</span>:<span style="color:#a6e22e">NSObject</span> {
+    NSString <span style="color:#f92672">*</span> fileName;
+    NSView <span style="color:#f92672">*</span> fileMonitorView;
+    <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> buffer;
+    FILE <span style="color:#f92672">*</span> fp;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>MRC 中 除了调用父类的dealloc方法之外，不允许显示的调用dealloc:</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)dealloc {
+    [fileName <span style="color:#66d9ef">release</span>];
+    [fileMonitorView <span style="color:#66d9ef">release</span>];
+    <span style="color:#66d9ef">if</span> (buffer <span style="color:#f92672">!=</span> NULL) {
+        free(buffer);
+    }
+    <span style="color:#66d9ef">if</span> (fp <span style="color:#f92672">!=</span> NULL) {
+        fclose(fp);
+    }
+    [super dealloc];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>ARC 中 不允许调用父类的dealloc:</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)dealloc {
+    <span style="color:#66d9ef">if</span> (buffer <span style="color:#f92672">!=</span> NULL) {
+        free(buffer);
+    }
+    <span style="color:#66d9ef">if</span> (fp <span style="color:#f92672">!=</span> NULL) {
+        fclose(fp);
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="weak-unsafe-unretained-autoreleasing"><strong>weak,</strong> unsafe_unretained, __autoreleasing</h3>
+
+<h4 id="weak">__weak</h4>
+
+<ol>
+<li>__weak 是ARC为了解决retainCycle而引入的；</li>
+<li>弱引用是通过存储一个对象的指针创建的，且不保留对象；</li>
+<li>nonowning relationship。自动nil化，<strong>weak修饰的对象被释放，</strong>weak变量自动置nil，不会变成野指针。</li>
+</ol>
+
+<p>使用时机：</p>
+
+<ol>
+<li>已经对该对象有一个强引用，没必要再强引用的时候；</li>
+<li>解决循环引用的时候；</li>
+</ol>
+
+<h4 id="unsafe-unretained">__unsafe_unretained</h4>
+
+<p>非nil化的弱指针，更强调所有权不变更。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+Person <span style="color:#f92672">*</span> p1 <span style="color:#f92672">=</span> [[Person alloc] intiWithName:<span style="color:#e6db74">@&#34;alicy&#34;</span>];
+__unsafe_unretained Person <span style="color:#f92672">*</span> temP <span style="color:#f92672">=</span> p1;
+Person <span style="color:#f92672">*</span> p2 <span style="color:#f92672">=</span> temP;
+temP <span style="color:#f92672">=</span> nil; <span style="color:#75715e">// 所有权不变更
+</span><span style="color:#75715e"></span><span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>类似Swift中的unOwned：
+假定银行系统，一张信用卡（CreditCard）对应一个客户（Customer），但一个客户不一定有一张信用卡:
+Customer -&gt; unsafe_unretained -&gt; CreditCard;
+CreditCard -&gt; strong -&gt; Customer;
+当该客户将信用卡从此银行注销时：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">// CreditCard 的 dealloc：
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)dealloc {
+    [self.customer setCreditCard:nil];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="autoreleasing">__autoreleasing</h4>
+
+<p>__autoreleasing的根本目的是获取一个延迟释放的对象。
+比如NSString的初始化方法中：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (nullable <span style="color:#66d9ef">instancetype</span>)initWithContentsOfFile:(NSString <span style="color:#f92672">*</span>)path encoding:(NSStringEncoding)enc error:(NSError <span style="color:#f92672">**</span>)error;
+
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>ARC的编译器会自动为函数的二重指针变量加上一个__autoreleasing修饰符：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (nullable <span style="color:#66d9ef">instancetype</span>)initWithContentsOfFile:(NSString <span style="color:#f92672">*</span>)path encoding:(NSStringEncoding)enc error:(<span style="color:#66d9ef">__autoreleasing</span> NSError <span style="color:#f92672">**</span>)error;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>相应的，我们使用这个函数的时候：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+NSError <span style="color:#f92672">*</span> error <span style="color:#f92672">=</span> nil;
+NSString <span style="color:#f92672">*</span> str <span style="color:#f92672">=</span> [[NSString alloc] initWithContentsOfFile:<span style="color:#e6db74">@&#34;file&#34;</span> encoding:NSUTF8StringEncoding error:<span style="color:#f92672">&amp;</span>error];
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>ARC的编译器会转为：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+NSError <span style="color:#66d9ef">__strong</span> <span style="color:#f92672">*</span> error <span style="color:#f92672">=</span> nil;
+NSError <span style="color:#66d9ef">__autoreleasing</span> <span style="color:#f92672">*</span> tempError <span style="color:#f92672">=</span> error;
+NSString <span style="color:#f92672">*</span> str <span style="color:#f92672">=</span> [[NSString alloc] initWithContentsOfFile:<span style="color:#e6db74">@&#34;file&#34;</span> encoding:NSUTF8StringEncoding error:<span style="color:#f92672">&amp;</span>tempError];
+error <span style="color:#f92672">=</span> tempError;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>当我们传递一个为初始化的对象的引用到一个方法中，并在此方法中实例化该对象，且希望返回时这个对象被自动加入到autoreleasePool的时候，我们就可以使用__autoreleasing的关键字。</p>
+		</div>
+		<footer class="post__footer">
+			
+<div class="post__tags tags clearfix">
+	<svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5 0 11V3C0 1.5.8.8.8.8S1.5 0 3 0h8c1.5 0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+	<ul class="tags__list">
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/objc/" rel="tag">objc</a>
+		</li>
+	</ul>
+</div>
+		</footer>
+	</article>
+</main>
+
+<div class="authorbox clearfix">
+	<div class="authorbox__header">
+		<span class="authorbox__name">About sean</span>
+	</div>
+	<div class="authorbox__description">
+		a manager and coder in internet ltd.
+	</div>
+</div>
+
+<nav class="pager flex">
+	<div class="pager__item pager__item--prev">
+		<a class="pager__link" href="/ios/ocblock/" rel="prev">
+			<span class="pager__subtitle">«&thinsp;Previous</span>
+			<p class="pager__title">Objective-C:Block</p>
+		</a>
+	</div>
+	<div class="pager__item pager__item--next">
+		<a class="pager__link" href="/ios/ocrunloop/" rel="next">
+			<span class="pager__subtitle">Next&thinsp;»</span>
+			<p class="pager__title">Objective-C:RunLoop(原理)</p>
+		</a>
+	</div>
+</nav>
+
+
+
+			</div>
+			<aside class="sidebar"><div class="widget-search widget">
+	<form class="widget-search__form" role="search" method="get" action="https://google.com/search">
+		<label>
+			<input class="widget-search__field" type="search" placeholder="SEARCH..." value="" name="q" aria-label="SEARCH...">
+		</label>
+		<input class="widget-search__submit" type="submit" value="Search">
+		<input type="hidden" name="sitesearch" value="http://sean.vip/" />
+	</form>
+</div>
+<div class="widget-categories widget">
+	<h4 class="widget__title">Categories</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item">
+				<a class="widget__link" href="/categories/ios/">iOS</a>
+			</li>
+		</ul>
+	</div>
+</div>
+<div class="widget-taglist widget">
+	<h4 class="widget__title">Tags</h4>
+	<div class="widget__content">
+		<a class="widget-taglist__link widget__link btn" href="/tags/block/" title="block">block</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/gcd/" title="GCD">GCD</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/objc/" title="objc">objc</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/runloop/" title="RunLoop">RunLoop</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="二维码">二维码</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AD%98%E5%82%A8/" title="存储">存储</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AE%89%E5%85%A8/" title="安全">安全</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" title="数据库">数据库</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E7%9B%B8%E6%9C%BA/" title="相机">相机</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/" title="计时器">计时器</a>
+	</div>
+</div>
+<div class="widget-social widget">
+	<h4 class="widget-social__title widget__title">Social</h4>
+	<div class="widget-social__content widget__content">
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="GitHub" rel="noopener noreferrer" href="https://github.com/sean-tech" target="_blank">
+				<svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0c-106.1 0-192 85.8-192 191.7 0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2 0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8 0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7 0 0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4 0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5 0 25.6-.2 46.3-.2 52.6 0 5.1 3.5 11.1 13.2 9.2 76.2-25.5 131.2-97.3 131.2-182 0-105.9-86-191.7-192-191.7z"/></svg>
+				<span>GitHub</span>
+			</a>
+		</div>
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="Email" href="mailto:sean.vip.contact@foxmail.com">
+				<svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16-256-16h-16-384-16zm347 16-139 92.5-139-92.5zm-148 125.5 9 5.5 9-5.5 167-111.5v210h-352v-210z"/></svg>
+				<span>sean.vip.contact@foxmail.com</span>
+			</a>
+		</div>
+
+		
+	</div>
+</div>
+</aside>
+		</div>
+		<footer class="footer">
+	<div class="container footer__container flex">
+		
+<div class="footer__links">
+	<a class="footer__link" href="/about/">About Me</a>
+</div>
+		<div class="footer__copyright">
+			&copy; 2020 John Doe.
+			<span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span>
+		</div>
+	</div>
+</footer>
+	</div>
+<script async defer src="/js/menu.js"></script>
+<script src="/js/custom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async></script>
+</body>
+</html>

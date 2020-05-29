@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>iOS:计时器 - sean</title>
+	<script>(function(d,e){d[e]=d[e].replace("no-js","js");})(document.documentElement,"className");</script>
+	<meta name="description" content="iOS计时器">
+		<meta property="og:title" content="iOS:计时器" />
+<meta property="og:description" content="iOS计时器" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://sean.vip/ios/ios%E8%AE%A1%E6%97%B6%E5%99%A8/" />
+<meta property="article:published_time" content="2016-03-12T14:05:55&#43;08:00"/>
+<meta property="article:modified_time" content="2016-03-12T14:05:55&#43;08:00"/>
+
+		
+<meta itemprop="name" content="iOS:计时器">
+<meta itemprop="description" content="iOS计时器">
+
+
+<meta itemprop="datePublished" content="2016-03-12T14:05:55&#43;08:00" />
+<meta itemprop="dateModified" content="2016-03-12T14:05:55&#43;08:00" />
+<meta itemprop="wordCount" content="0">
+
+
+
+<meta itemprop="keywords" content="计时器,GCD," />
+
+		<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="iOS:计时器"/>
+<meta name="twitter:description" content="iOS计时器"/>
+
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<link rel="stylesheet" href="/css/custom.css">
+	<link rel="shortcut icon" href="/favicon.ico">
+		
+</head>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container header__container">
+		
+	<div class="logo">
+		<a class="logo__link" href="/" title="sean" rel="home">
+			<div class="logo__title">sean</div>
+			<div class="logo__tagline">sean&#39;s zone</div>
+		</a>
+	</div>
+		<div class="divider"></div>
+	</div>
+</header>
+
+		<div class="wrapper flex">
+			<div class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">iOS:计时器</h1>
+			<div class="post__meta meta">
+<div class="meta__item-datetime meta__item">
+	<svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class="meta__text" datetime="2016-03-12T14:05:55&#43;08:00">2016-03-12</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2l1 2h8v11h-16v-13z"/></svg><span class="meta__text"><a class="meta__link" href="/categories/ios/" rel="category">iOS</a>
+	</span>
+</div></div>
+		</header>
+<div class="post__toc toc">
+	<div class="toc__title">Page content</div>
+	<div class="toc__menu">
+		<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#前言">前言</a></li>
+<li><a href="#nstimer与runloop">NSTimer与RunLoop</a>
+<ul>
+<li><a href="#nstimer">NSTimer</a></li>
+<li><a href="#runloop">RunLoop</a></li>
+</ul></li>
+<li><a href="#nstimer与nsthread">NSTimer与NSThread</a></li>
+<li><a href="#gcd">GCD</a>
+<ul>
+<li><a href="#简介">简介</a></li>
+<li><a href="#使用">使用</a></li>
+<li><a href="#封装">封装</a></li>
+<li><a href="#使用封装">使用封装</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+	</div>
+</div>
+<div class="content post__content clearfix">
+			<p style="font-family:verdana;font-size:120%;color:gray" ,="" align="left">1S的误差对计算机来说都是天文数字</p>
+
+<h3 id="前言">前言</h3>
+
+<p>公司的项目有一个秒杀模块，真是加了又删，删了又加，改了又改，多人开发的时候代码封装与控制没有做好，导致项目多处计时器，秒杀时间计算等逻辑，代码冗余而又难改，最关键的是大量的NSTimer的不当使用.</p>
+
+<p>鉴于NSTimer不当使用导致计时不精准，并且影响迭代效率，我们来做一次iOS中计时器功能的整理迭代。</p>
+
+<h3 id="nstimer与runloop">NSTimer与RunLoop</h3>
+
+<h4 id="nstimer">NSTimer</h4>
+
+<p>NSTimer第一种初始化方式：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">+</span> (NSTimer <span style="color:#f92672">*</span>)scheduledTimerWithTimeInterval:(NSTimeInterval)ti target:(<span style="color:#66d9ef">id</span>)aTarget selector:(<span style="color:#66d9ef">SEL</span>)aSelector userInfo:(nullable <span style="color:#66d9ef">id</span>)userInfo repeats:(<span style="color:#66d9ef">BOOL</span>)yesOrNo;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>使用这种方式初始化时，Timer会被加入到当前线程的RunLoop中,模式是默认的NSDefaultRunLoopMode；</p>
+
+<p>而在当前线程为主线程的情况下，当主线程中进行复杂的运算，或者进行UI界面操作时，会出现问题——</p>
+
+<p>由于在main runloop中NSTimer是同步交付的被“阻塞”，而模式也有可能会改变：</p>
+
+<p>（会将RunLoop切换成NSEventTrackingRunLoopMode模式，在这个过程中，默认的NSDefaultRunLoopMode模式中注册的事件是不会被执行的）；</p>
+
+<p>也就是说，此时使用scheduledTimerWithTimeInterval添加到RunLoop中的Timer就不会执行，因此，就会导致NSTimer计时出现延误。</p>
+
+<p><br/></p>
+
+<p>另一种初始化方式：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">+</span> (NSTimer <span style="color:#f92672">*</span>)timerWithTimeInterval:(NSTimeInterval)ti target:(<span style="color:#66d9ef">id</span>)aTarget selector:(<span style="color:#66d9ef">SEL</span>)aSelector userInfo:(nullable <span style="color:#66d9ef">id</span>)userInfo repeats:(<span style="color:#66d9ef">BOOL</span>)yesOrNo;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>使用这种方式初始化时，我们需要调用NSRunLoop.currentRunLoop，把timer加入到runloop中并且指定Mode：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+FOUNDATION_EXPORT NSRunLoopMode <span style="color:#66d9ef">const</span> NSDefaultRunLoopMode;
+FOUNDATION_EXPORT NSRunLoopMode <span style="color:#66d9ef">const</span> NSRunLoopCommonModes <span style="color:#a6e22e">NS_AVAILABLE</span>(<span style="color:#ae81ff">10</span>_5, <span style="color:#ae81ff">2</span>_0);
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">addTimer:</span>(NSTimer <span style="color:#f92672">*</span>)timer <span style="color:#a6e22e">forMode:</span>(NSRunLoopMode)mode;
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>根据Apple文档，NSRunLoopCommonModes等效于NSDefaultRunLoopMode和NSEventTrackingRunLoopMode的结合；</p>
+
+<p>当我们使用NSRunLoopCommonModes模式启动时，Timer的优先级将和UI控件一样高，也即不会受到主线程UI操作的影响，从而正常执行。</p>
+
+<h4 id="runloop">RunLoop</h4>
+
+<p>Runloop即运行循环，每个线程都有一个实际已经存在的runloop,他不停地运行；</p>
+
+<p>从程序开始到程序退出，Runloop在不断地监听各种事件，使得程序可以检测到用户的各种触摸交互、网络返回的数据、定时器在预定的时间触发等一系列操作；</p>
+
+<p>Runloop只接受两种任务：输入源和定时源。</p>
+
+<p>计时器就是其中的定时源。默认状态下，子线程的runloop中没有加入我们自己的源，同样也是没有启动的（只有主线程的Runloop是自动开启的），在子线程中使用定时器时，就需要自己加到runloop中，并启动该线程的runloop，从而使定时器正常运行。</p>
+
+<p>关于Runloop，我将会单独写一篇文章做详细记录。</p>
+
+<p>第一种初始化方式的弊端我们可以通过初始化方式二来进行解决，除此之外，在子线程中进行逻辑运算，在主线程中进行刷新UI的操作，也可以解决主线程阻塞导致模式转变而计时不准的问题。</p>
+
+<h3 id="nstimer与nsthread">NSTimer与NSThread</h3>
+
+<p>在实际项目中，有很多计时器关联的操作是比较费时的或计算量较大的，如某些秒杀逻辑的运算，这种情况下，为避免阻塞主线程或导致UI卡顿，我们需要将计时器关联的操作放到子线程中执行，再在主线程回调刷新UI，这种情况下，就要结合线程操作。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">// 创建并执行新的线程
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)StartTimerThread {   
+    NSThread <span style="color:#f92672">*</span><span style="color:#66d9ef">thread</span> <span style="color:#f92672">=</span> [[NSThread alloc] initWithTarget:self selector:<span style="color:#66d9ef">@selector</span>(timerThread) object:nil];
+    [<span style="color:#66d9ef">thread</span> start];
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)timerThread {
+    <span style="color:#66d9ef">@autoreleasepool</span> {
+        <span style="color:#75715e">// 在当前Run Loop中添加timer，模式是默认的NSDefaultRunLoopMode
+</span><span style="color:#75715e"></span>        _timer <span style="color:#f92672">=</span> [NSTimer scheduledTimerWithTimeInterval:<span style="color:#ae81ff">2.0</span> target:self selector:<span style="color:#66d9ef">@selector</span>(timerCallback) userInfo:nil repeats:YES];
+        <span style="color:#75715e">// 开始执行新线程的Run Loop
+</span><span style="color:#75715e"></span>        [[NSRunLoop currentRunLoop] run];
+    }
+}
+
+<span style="color:#75715e">// timer的关联方法
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)timerCallback {
+    <span style="color:#75715e">// 逻辑运算
+</span><span style="color:#75715e"></span>  	<span style="color:#75715e">// 执行完毕后主线程回调刷新UI
+</span><span style="color:#75715e"></span>    [self performSelectorOnMainThread:<span style="color:#66d9ef">@selector</span>(refreshUI) withObject:nil waitUntilDone:false];
+}
+<span style="color:#75715e">// 回调方法
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)refreshUI {
+    <span style="color:#75715e">/// 刷新UI
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#75715e">// timer的取消方法
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)cancelTimer {
+    NSThread <span style="color:#f92672">*</span><span style="color:#66d9ef">thread</span> <span style="color:#f92672">=</span> [[NSThread alloc] initWithTarget:self selector:<span style="color:#66d9ef">@selector</span>(timerCancelThread) object:nil];
+    [<span style="color:#66d9ef">thread</span> start];
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)timerCancelThread {
+    <span style="color:#66d9ef">if</span> (_timer) {
+        [_timer invalidate];
+        _timer <span style="color:#f92672">=</span> nil;
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p><strong>一定记住，要及时销毁timer，否则会有内存泄漏的风险</strong></p>
+
+<p>我们看timer的invalidate方法官方介绍：</p>
+
+<blockquote>
+<p>This method is the only way to remove a timer from an NSRunLoop object. The NSRunLoop object removes its strong reference to the timer, either just before the invalidate method returns or at some later point.
+If it was configured with target and user info objects, the receiver removes its strong references to those objects as well.
+You must send this message from the thread on which the timer was installed. If you send this message from another thread, the input source associated with the timer may not be removed from its run loop, which could prevent the thread from exiting properly.</p>
+</blockquote>
+
+<p>NSTimer再初始化时，会持有target对象，而Runloop对象会持有timer对象;</p>
+
+<p>当invalidate被调用时，NSRunLoop对象会释放对timer的持有，timer会释放对target的持有;</p>
+
+<p>除此之外，我们没有途径可以释放timer对target的持有。所以解决内存泄露就必须撤销timer，若不撤销，target对象将永远无法释放。</p>
+
+<p>并且：NSTimer的创建与撤销必须在同一个线程操作。</p>
+
+<p>对于timerThread方法中的@autoreleasepool{}，我们都知道主线程的RunLoop是默认启动的，而在main函数中：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">int</span> main(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> argv[]) {
+    <span style="color:#66d9ef">@autoreleasepool</span> {
+        <span style="color:#66d9ef">return</span> UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate <span style="color:#66d9ef">class</span>]));
+    }
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>也存在自动释放池，这种做法，我将在之后的RunLoop及多线程相关文章中做出说明和讲解。</p>
+
+<h3 id="gcd">GCD</h3>
+
+<p>NSTimer使用起来着实有太多不便，需要注意的地方太多。我们的另一个选择是使用GCD的Dispatch Sources 来创建一个timer。</p>
+
+<h4 id="简介">简介</h4>
+
+<p>什么是dispatch source呢？</p>
+
+<p>dispatch source是一个监视某些类型事件的对象。当这些事件发生时，它自动将一个block放入一个dispatch queue的执行例程中。</p>
+
+<p>简要来说，它是一个“输入源”来起到监听作用，在事件发生时自动执行block中的任务。</p>
+
+<p>对于dispatch source，将开单独的文章进行记录和说明。</p>
+
+<h4 id="使用">使用</h4>
+
+<p>我们在Xcode中打dispatch source 会出现dispatch source timer的提示，敲下回车后，代码是这个样子的：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+dispatch_source_t timer <span style="color:#f92672">=</span> dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, dispatch_get_main_queue());
+    dispatch_source_set_timer(timer, DISPATCH_TIME_NOW, <span style="color:#ae81ff">1</span> <span style="color:#f92672">*</span> NSEC_PER_SEC, <span style="color:#ae81ff">1</span> <span style="color:#f92672">*</span> NSEC_PER_SEC);
+    dispatch_source_set_event_handler(timer, <span style="color:#f92672">^</span>{
+        <span style="color:#75715e">//
+</span><span style="color:#75715e"></span>    });
+    dispatch_resume(timer);
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>便于观察，我们可以把参数拆分一下，使用GCD的dispatch source来创建计时器的主要步骤如下：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">// 创建一个队列
+</span><span style="color:#75715e"></span>dispatch_queue_t queue <span style="color:#f92672">=</span> dispatch_get_global_queue(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>);
+<span style="color:#75715e">// 根据队列创建timer
+</span><span style="color:#75715e"></span>dispatch_source_t timer <span style="color:#f92672">=</span> dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, queue);
+<span style="color:#75715e">// 首次执行时间
+</span><span style="color:#75715e"></span>dispatch_time_t start <span style="color:#f92672">=</span> dispatch_time(DISPATCH_TIME_NOW, <span style="color:#ae81ff">0</span>);
+<span style="color:#75715e">// 任务执行时间间隔
+</span><span style="color:#75715e"></span>uint64_t interval <span style="color:#f92672">=</span> timeInterval <span style="color:#f92672">*</span> NSEC_PER_SEC;
+<span style="color:#75715e">// 允许的延迟（精确度）
+</span><span style="color:#75715e"></span>uint64_t leeway <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">*</span> NSEC_PER_SEC;
+<span style="color:#75715e">// 设置timer的 首次执行时间， 任务执行时间间隔， 精确度
+</span><span style="color:#75715e"></span>dispatch_source_set_timer(timer, start, interval, leeway);
+<span style="color:#75715e">// 设置timer的 执行任务事件
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">__weak</span> <span style="color:#a6e22e">typeof</span> (self) weakSelf <span style="color:#f92672">=</span> self;
+dispatch_source_set_event_handler(timer, <span style="color:#f92672">^</span>{
+    <span style="color:#75715e">// action handle
+</span><span style="color:#75715e"></span>    [weakSelf <span style="color:#66d9ef">do</span>];
+});
+<span style="color:#75715e">// 启动timer
+</span><span style="color:#75715e"></span>dispatch_resume(timer);
+<span style="color:#75715e">// 取消timer
+</span><span style="color:#75715e"></span>dispatch_source_cancel(timer);
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>我们知道，任何计时器都不可能做到100%精确，leeway这个参数很有意思，它表明了我们希望系统为达到的精确度做出努力的程度，既然这样，也就表明，精确度越高，系统CPU资源的占用也就越多，相反，精确度越低，CPU占用就越低。</p>
+
+<p>这样做的意义就在于降低资源消耗。如果系统可以让cpu休息足够长的时间，并在每次醒来的时候执行一个任务集合，而不是不断的醒来睡去以执行任务，那么系统会更高效。</p>
+
+<p>如果传入一个比较大的leeway给你的计时器，意味着你允许系统拖延你的计时器来将计时器任务与其他任务联合起来一起执行。</p>
+
+<p>这样使用dispatch timer 已经可以满足大部分的需求了，但是每次启动都要写这么多代码，而且也不够全面，那我们对dispatch timer做一次封装。</p>
+
+<h4 id="封装">封装</h4>
+
+<p>这个封装的目的在于，我们需要像NSTimer那样，是计时器的创建和管理更简单方便，而且需要更全面的功能，那么封装的这个计时器类，我们把它设定为单例类：SeanTimer。</p>
+
+<p>SeanTimer的主体功能：
+　　1. 提供创建计时器的接口；
+　　2. 提供取消计时器的接口；
+　　3. 计时器的需求有可能在很多模块都存在，我们需要提供计时器的缓存，以优化和查找；
+  　　4. 对于特定的需求，我们需要新开启的计时器能够同时执行已取消的计时器的方法和新添加的逻辑；</p>
+
+<p>基于以上设计，我们定义接口文件如下： 　　</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">typedef</span> NS_ENUM(NSUInteger, ActionOption) {
+    PreviousActionCancel,<span style="color:#75715e">//废除旧任务
+</span><span style="color:#75715e"></span>    PreviousActionMerge,<span style="color:#75715e">//合并新旧任务
+</span><span style="color:#75715e"></span>};
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">SeanTimer</span> : <span style="color:#a6e22e">NSObject</span>
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * method:sharedInstance.
+</span><span style="color:#75715e"> */</span>
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">sharedInstance</span>;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * method:create&amp;start a timer based GCD.
+</span><span style="color:#75715e"> * Name:         名字标识;
+</span><span style="color:#75715e"> * TimeInterval: 计时器执行任务间隔;
+</span><span style="color:#75715e"> * Queue:        任务执行的线程(默认子线程);
+</span><span style="color:#75715e"> * Repeats:      是否重复;
+</span><span style="color:#75715e"> * Option:       相同标识timer任务执行模式,0废除旧任务(默认),1合并新旧任务;
+</span><span style="color:#75715e"> * Action:       timer关联SEL.
+</span><span style="color:#75715e"> * 合并新任务模式下暂不支持传参
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">TimerWithName:</span>(NSString <span style="color:#f92672">*</span>)name <span style="color:#a6e22e">TimeInterval:</span>(<span style="color:#66d9ef">double</span>)timeInterval <span style="color:#a6e22e">Queue:</span>(dispatch_queue_t)queue <span style="color:#a6e22e">Repeats:</span>(<span style="color:#66d9ef">BOOL</span>)repeats  <span style="color:#a6e22e">Option:</span>(ActionOption)option <span style="color:#a6e22e">Target:</span>(<span style="color:#66d9ef">id</span>)target <span style="color:#a6e22e">Action:</span>(<span style="color:#66d9ef">SEL</span>)action <span style="color:#a6e22e">Object:</span>(<span style="color:#66d9ef">id</span>)obj;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * method:cancelTimerWithName.
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">cancelTimerWithName:</span>(NSString <span style="color:#f92672">*</span>)name;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * method:cancel all timer.
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">cancelAllTimer</span>;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>我们将缓存放入匿名类别中：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;SeanTimer.h&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">SeanTimer</span> ()
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">strong</span> , <span style="color:#66d9ef">nonatomic</span>) NSMutableDictionary <span style="color:#f92672">*</span> timerCache;
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">strong</span> , <span style="color:#66d9ef">nonatomic</span>) NSMutableDictionary <span style="color:#f92672">*</span> actionCache;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>一个是timer缓存，避免同样的timer重复创建；</p>
+
+<p>另一个是action缓存，这里记录了timer的关联方法，存储类型为SEL类型;</p>
+
+<p>timer的创建与action等的缓存，均是根据“name”别名来作Key存储。</p>
+
+<p>我们来实现单例方法和缓存对象的懒加载：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - sharedInstance.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> SeanTimer <span style="color:#f92672">*</span> _instance <span style="color:#f92672">=</span> nil;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * method:sharedInstance.
+</span><span style="color:#75715e"> */</span>
++ (<span style="color:#66d9ef">instancetype</span>)<span style="color:#a6e22e">sharedInstance</span> {
+    <span style="color:#66d9ef">static</span> dispatch_once_t onceToken;
+    dispatch_once(<span style="color:#f92672">&amp;</span>onceToken, <span style="color:#f92672">^</span>{
+        _instance <span style="color:#f92672">=</span> [[SeanTimer alloc] init];
+    });
+    <span style="color:#66d9ef">return</span> _instance;
+}
+
+<span style="color:#75715e">#pragma mark - lazy loading.
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * timer cache, timer缓存.
+</span><span style="color:#75715e"> */</span>
+- (NSMutableDictionary <span style="color:#f92672">*</span>)<span style="color:#a6e22e">timerCache</span> {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_timerCache) {
+        _timerCache <span style="color:#f92672">=</span> [NSMutableDictionary dictionary];
+    }
+    <span style="color:#66d9ef">return</span> _timerCache;
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * action cache, action缓存.
+</span><span style="color:#75715e"> */</span>
+- (NSMutableDictionary <span style="color:#f92672">*</span>)<span style="color:#a6e22e">actionCache</span> {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_actionCache) {
+        _actionCache <span style="color:#f92672">=</span> [NSMutableDictionary dictionary];
+    }
+    <span style="color:#66d9ef">return</span> _actionCache;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>最后是主体功能的实现：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - methods:public
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * method:create&amp;start a timer based GCD.
+</span><span style="color:#75715e"> * Name:         名字标识;
+</span><span style="color:#75715e"> * TimeInterval: 计时器执行任务间隔;
+</span><span style="color:#75715e"> * Queue:        任务执行的线程(默认子线程);
+</span><span style="color:#75715e"> * Repeats:      是否重复;
+</span><span style="color:#75715e"> * Option:       相同标识timer任务执行模式,0废除旧任务(默认),1合并新旧任务;
+</span><span style="color:#75715e"> * Action:       timer关联SEL.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)TimerWithName:(NSString <span style="color:#f92672">*</span>)name TimeInterval:(<span style="color:#66d9ef">double</span>)timeInterval Queue:(dispatch_queue_t)queue Repeats:(<span style="color:#66d9ef">BOOL</span>)repeats  Option:(ActionOption)option Target:(<span style="color:#66d9ef">id</span>)target Action:(<span style="color:#66d9ef">SEL</span>)action Object:(<span style="color:#66d9ef">id</span>)obj {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>name)  <span style="color:#66d9ef">return</span>;
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>action) <span style="color:#66d9ef">return</span>;
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>target)  <span style="color:#66d9ef">return</span>;
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>queue) queue <span style="color:#f92672">=</span> dispatch_get_global_queue(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>);
+  
+    dispatch_source_t timer <span style="color:#f92672">=</span> self.timerCache[name];  
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>timer) {
+        timer <span style="color:#f92672">=</span> dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, queue);
+        <span style="color:#75715e">// timer cache
+</span><span style="color:#75715e"></span>        [self.timerCache setObject:timer forKey:name];
+    }
+    dispatch_time_t start <span style="color:#f92672">=</span> dispatch_time(DISPATCH_TIME_NOW, <span style="color:#ae81ff">0</span>);
+    uint64_t interval <span style="color:#f92672">=</span> timeInterval <span style="color:#f92672">*</span> NSEC_PER_SEC;
+    uint64_t leeway <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">*</span> NSEC_PER_SEC;
+    dispatch_source_set_timer(timer, start, interval, leeway);
+    
+    <span style="color:#66d9ef">__weak</span> <span style="color:#a6e22e">typeof</span> (self) weakSelf <span style="color:#f92672">=</span> self;
+    <span style="color:#66d9ef">switch</span> (option) {
+        <span style="color:#66d9ef">case</span> PreviousActionMerge: <span style="color:#75715e">// 合并之前的任务，下一轮一起执行
+</span><span style="color:#75715e"></span>        {
+            [self saveAction:action WithName:name];
+            dispatch_source_set_event_handler(timer, <span style="color:#f92672">^</span>{
+                [weakSelf performActionsWithName:name Target:target];
+                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>repeats) {
+                    [self cancelTimerWithName:name];
+                }
+            });
+            <span style="color:#66d9ef">break</span>;
+        }
+        <span style="color:#66d9ef">case</span> PreviousActionCancel: <span style="color:#75715e">// 取消之前的任务，下一次仅执行新任务
+</span><span style="color:#75715e"></span>        {
+            [self removeActionCacheWithName:name];
+            dispatch_source_set_event_handler(timer, <span style="color:#f92672">^</span>{
+                [weakSelf performActionWithTarget:target Action:action Object:obj];
+                <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>repeats) {
+                    [self cancelTimerWithName:name];
+                }
+            });
+            <span style="color:#66d9ef">break</span>;
+        }
+    }
+    dispatch_resume(timer);
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * method:cancelTimerWithName.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)cancelTimerWithName:(NSString <span style="color:#f92672">*</span>)name {
+    dispatch_source_t timer <span style="color:#f92672">=</span> self.timerCache[name];
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>timer) <span style="color:#66d9ef">return</span>;
+    dispatch_source_cancel(timer);
+    [self.timerCache removeObjectForKey:name];
+<span style="color:#75715e">//    [self.actionCache removeObjectForKey:name];
+</span><span style="color:#75715e"></span>}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * method:cancel all timer.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)cancelAllTimer {
+    [self.timerCache enumerateKeysAndObjectsUsingBlock:<span style="color:#f92672">^</span>(NSString <span style="color:#f92672">*</span> name, dispatch_source_t timer, <span style="color:#66d9ef">BOOL</span> <span style="color:#f92672">*</span> _Nonnull stop) {
+        [self.timerCache removeObjectForKey:name];
+        dispatch_source_cancel(timer);
+    }];
+}
+
+<span style="color:#75715e">#pragma mark - methods:private.
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 根据timer名，将新的action加入缓存
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)saveAction:(<span style="color:#66d9ef">SEL</span>)action WithName:(NSString <span style="color:#f92672">*</span>)name {
+    NSString <span style="color:#f92672">*</span> actionString <span style="color:#f92672">=</span> NSStringFromSelector(action);
+    <span style="color:#66d9ef">id</span> actionArray <span style="color:#f92672">=</span> self.actionCache[name];
+    <span style="color:#66d9ef">if</span> (actionArray<span style="color:#f92672">&amp;&amp;</span>[actionArray isKindOfClass:[NSMutableArray <span style="color:#66d9ef">class</span>]]) {
+        [(NSMutableArray <span style="color:#f92672">*</span>)actionArray addObject:actionString];
+        <span style="color:#66d9ef">return</span>;
+    }
+    NSMutableArray <span style="color:#f92672">*</span> actionArrayNew <span style="color:#f92672">=</span> [[NSMutableArray alloc] initWithObjects:actionString, nil];
+    [self.actionCache setObject:actionArrayNew forKey:name];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 根据timer名，将之前的action移除缓存
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)removeActionCacheWithName:(NSString <span style="color:#f92672">*</span>)name {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>self.actionCache[name]) <span style="color:#66d9ef">return</span>;
+    [self.actionCache removeObjectForKey:name];
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)performActionsWithName:(NSString <span style="color:#f92672">*</span>)name Target:(<span style="color:#66d9ef">id</span>)target {
+<span style="color:#75715e">//    [self removeActionCacheWithName:name];
+</span><span style="color:#75715e"></span>    NSMutableArray <span style="color:#f92672">*</span> actionArray <span style="color:#f92672">=</span> self.actionCache[name];
+    [actionArray enumerateObjectsUsingBlock:<span style="color:#f92672">^</span>(NSString <span style="color:#f92672">*</span> actionString, NSUInteger idx, <span style="color:#66d9ef">BOOL</span> <span style="color:#f92672">*</span> _Nonnull stop) {
+        <span style="color:#66d9ef">SEL</span> aAction <span style="color:#f92672">=</span> NSSelectorFromString(actionString);
+        <span style="color:#66d9ef">IMP</span> imp <span style="color:#f92672">=</span> [target methodForSelector:aAction];
+        <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>func)(<span style="color:#66d9ef">id</span>, <span style="color:#66d9ef">SEL</span> , <span style="color:#66d9ef">id</span>) <span style="color:#f92672">=</span> (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)imp;
+        func(target, aAction , nil);
+    }];
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)performActionWithTarget:(<span style="color:#66d9ef">id</span>)target Action:(<span style="color:#66d9ef">SEL</span>)action Object:(<span style="color:#66d9ef">id</span>)obj {
+    <span style="color:#66d9ef">IMP</span> imp <span style="color:#f92672">=</span> [target methodForSelector:action];
+    <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>func)(<span style="color:#66d9ef">id</span>, <span style="color:#66d9ef">SEL</span> , <span style="color:#66d9ef">id</span>) <span style="color:#f92672">=</span> (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)imp;
+    func(target, action , obj);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>对于public方法：</p>
+
+<ol>
+<li>TimerWithName：Timer的创建方法，首先从缓存中根据name查找并获取timer，没有获取到，则创建新的timer；其次对timer进行相关设置；下一步，则根据ActionOption这个执行策略的枚举，来判断是否合并之前的任务一起执行，从而设置相应的dispatch_source_set_event_handler。Repeats字段是仿照NSTimer的Repeats，不需要重复执行的任务，将在一次执行后调用dispatch_source_cancel取消掉。</li>
+<li>cancelTimerWithName：Timer的取消方法：根据name，先从缓存中找到timer，然后dispatch_source_cancel取消掉这个timer，最后从缓存删除。</li>
+<li>cancelAllTimer：取消所有timer的方法，遍历timer缓存，逐个的将timer取消，并从缓存删除。</li>
+</ol>
+
+<p>对于private方法：
+  1. saveAction： 将action加入缓存，对于action缓存，由于有合并执行策略的存在，存储结构为：{“name”:[action1, action2]}，此方法以name为键的形式将多个同name的action一一缓存。由于OC语言的特性，这里缓存的并非真正的SEL，而是缓存的SEL对应的名称，调用时再根据名称获取SEL进行调用。</p>
+
+<ol>
+<li><p>removeActionCacheWithName： 将action从缓存中移除，直接从缓存数组中删除。</p></li>
+
+<li><p>SEL aAction = NSSelectorFromString(actionString) ： 根据SEL名称获取SEL；</p></li>
+</ol>
+
+<p>IMP imp = [target methodForSelector:aAction]根据SEL获取方法指针；</p>
+
+<p>void (*func)(id, SEL , id) = (void *)imp;</p>
+
+<p>func(target, aAction , nil);  最后，根据方法指针进行函数调用。</p>
+
+<p>在合并任务，也即多方法调用里，并未实现传参的功能，如有需要，可以根据SEL名称进行参数Object的缓存。</p>
+
+<ol>
+<li>performActionWithTarget：单action的调用方法；</li>
+</ol>
+
+<p>单方法调用则更为简单：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#66d9ef">IMP</span> imp <span style="color:#f92672">=</span> [target methodForSelector:action];
+<span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>func)(<span style="color:#66d9ef">id</span>, <span style="color:#66d9ef">SEL</span> , <span style="color:#66d9ef">id</span>) <span style="color:#f92672">=</span> (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)imp;
+func(target, action , obj);
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>对于这种底层的直接调用函数的方式，可以查看Runtime的文章，通过函数调动，相比SEL选择器调用速度更快，但失去了Runtime的灵活性，孰优孰略，根据需求自行考量。 　　</p>
+
+<h4 id="使用封装">使用封装</h4>
+
+<p>我们定义一个宏作为Timer名字，声明一个整型index，创建一个label：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+
+<span style="color:#75715e">#define TIMER_TEST @&#34;Timer_Test&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">ViewController</span> ()
+{
+    <span style="color:#66d9ef">int</span> index;
+}
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">weak</span>, <span style="color:#66d9ef">nonatomic</span>) <span style="color:#66d9ef">IBOutlet</span> UILabel <span style="color:#f92672">*</span>label;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>在viewDidLoad方法中进行测试调用：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewDidLoad  {
+    [super viewDidLoad];
+<span style="color:#75715e">//    [self timerTestWithActionOption:PreviousActionMerge];
+</span><span style="color:#75715e"></span>    [self timerTestWithActionOption:PreviousActionCancel];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)timerTestWithActionOption:(ActionOption)option {
+    index <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    [[SeanTimer sharedInstance] TimerWithName:TIMER_TEST TimeInterval:<span style="color:#ae81ff">1.f</span> Queue:dispatch_get_global_queue(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>) Repeats:true Option:option Target:self Action:<span style="color:#66d9ef">@selector</span>(action1) Object:nil];
+  
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(<span style="color:#ae81ff">3</span> <span style="color:#f92672">*</span> NSEC_PER_SEC)), dispatch_get_main_queue(), <span style="color:#f92672">^</span>{
+        [[SeanTimer sharedInstance] cancelTimerWithName:TIMER_TEST];
+    });
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(<span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> NSEC_PER_SEC)), dispatch_get_main_queue(), <span style="color:#f92672">^</span>{
+        [[SeanTimer sharedInstance] TimerWithName:TIMER_TEST TimeInterval:<span style="color:#ae81ff">1.f</span> Queue:dispatch_get_global_queue(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>) Repeats:true Option:option Target:self Action:<span style="color:#66d9ef">@selector</span>(action2) Object:nil];
+    });
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)action1 {
+    index <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;
+    dispatch_async(dispatch_get_main_queue(), <span style="color:#f92672">^</span>{
+        _label.text <span style="color:#f92672">=</span> [NSString stringWithFormat:<span style="color:#e6db74">@&#34;%i&#34;</span>, index];
+    });
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)action2 
+    dispatch_async(dispatch_get_main_queue(), <span style="color:#f92672">^</span>{
+        NSLog(<span style="color:#e6db74">@&#34;%i&#34;</span>, index);
+    });
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<p>可以看到，我们的计时器在两种模式下都可以正常工作，但在同命名的Timer的任务执行模式转换时要多加注意。</p>
+
+<p>最后，不要忘记销毁：</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)dealloc {
+    [[SeanTimer sharedInstance] cancelTimerWithName:TIMER_TEST];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+		</div>
+		<footer class="post__footer">
+			
+<div class="post__tags tags clearfix">
+	<svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5 0 11V3C0 1.5.8.8.8.8S1.5 0 3 0h8c1.5 0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+	<ul class="tags__list">
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/" rel="tag">计时器</a>
+		</li>
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/gcd/" rel="tag">GCD</a>
+		</li>
+	</ul>
+</div>
+		</footer>
+	</article>
+</main>
+
+<div class="authorbox clearfix">
+	<div class="authorbox__header">
+		<span class="authorbox__name">About sean</span>
+	</div>
+	<div class="authorbox__description">
+		a manager and coder in internet ltd.
+	</div>
+</div>
+
+<nav class="pager flex">
+	<div class="pager__item pager__item--prev">
+		<a class="pager__link" href="/ios/oc%E4%BF%AE%E9%A5%B0%E7%AC%A6%E4%B8%8E%E5%85%B3%E9%94%AE%E5%AD%97/" rel="prev">
+			<span class="pager__subtitle">«&thinsp;Previous</span>
+			<p class="pager__title">Objective-C:修饰符与关键字</p>
+		</a>
+	</div>
+	<div class="pager__item pager__item--next">
+		<a class="pager__link" href="/ios/ocblock/" rel="next">
+			<span class="pager__subtitle">Next&thinsp;»</span>
+			<p class="pager__title">Objective-C:Block</p>
+		</a>
+	</div>
+</nav>
+
+
+
+			</div>
+			<aside class="sidebar"><div class="widget-search widget">
+	<form class="widget-search__form" role="search" method="get" action="https://google.com/search">
+		<label>
+			<input class="widget-search__field" type="search" placeholder="SEARCH..." value="" name="q" aria-label="SEARCH...">
+		</label>
+		<input class="widget-search__submit" type="submit" value="Search">
+		<input type="hidden" name="sitesearch" value="http://sean.vip/" />
+	</form>
+</div>
+<div class="widget-categories widget">
+	<h4 class="widget__title">Categories</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item">
+				<a class="widget__link" href="/categories/ios/">iOS</a>
+			</li>
+		</ul>
+	</div>
+</div>
+<div class="widget-taglist widget">
+	<h4 class="widget__title">Tags</h4>
+	<div class="widget__content">
+		<a class="widget-taglist__link widget__link btn" href="/tags/block/" title="block">block</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/gcd/" title="GCD">GCD</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/objc/" title="objc">objc</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/runloop/" title="RunLoop">RunLoop</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="二维码">二维码</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AD%98%E5%82%A8/" title="存储">存储</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AE%89%E5%85%A8/" title="安全">安全</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" title="数据库">数据库</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E7%9B%B8%E6%9C%BA/" title="相机">相机</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/" title="计时器">计时器</a>
+	</div>
+</div>
+<div class="widget-social widget">
+	<h4 class="widget-social__title widget__title">Social</h4>
+	<div class="widget-social__content widget__content">
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="GitHub" rel="noopener noreferrer" href="https://github.com/sean-tech" target="_blank">
+				<svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0c-106.1 0-192 85.8-192 191.7 0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2 0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8 0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7 0 0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4 0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5 0 25.6-.2 46.3-.2 52.6 0 5.1 3.5 11.1 13.2 9.2 76.2-25.5 131.2-97.3 131.2-182 0-105.9-86-191.7-192-191.7z"/></svg>
+				<span>GitHub</span>
+			</a>
+		</div>
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="Email" href="mailto:sean.vip.contact@foxmail.com">
+				<svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16-256-16h-16-384-16zm347 16-139 92.5-139-92.5zm-148 125.5 9 5.5 9-5.5 167-111.5v210h-352v-210z"/></svg>
+				<span>sean.vip.contact@foxmail.com</span>
+			</a>
+		</div>
+
+		
+	</div>
+</div>
+</aside>
+		</div>
+		<footer class="footer">
+	<div class="container footer__container flex">
+		
+<div class="footer__links">
+	<a class="footer__link" href="/about/">About Me</a>
+</div>
+		<div class="footer__copyright">
+			&copy; 2020 John Doe.
+			<span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span>
+		</div>
+	</div>
+</footer>
+	</div>
+<script async defer src="/js/menu.js"></script>
+<script src="/js/custom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async></script>
+</body>
+</html>

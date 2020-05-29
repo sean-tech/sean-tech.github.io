@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>iOS:视频录制与合成 - sean</title>
+	<script>(function(d,e){d[e]=d[e].replace("no-js","js");})(document.documentElement,"className");</script>
+	<meta name="description" content="iOS自定义相机视频录制与合成">
+		<meta property="og:title" content="iOS:视频录制与合成" />
+<meta property="og:description" content="iOS自定义相机视频录制与合成" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://sean.vip/ios/ios%E8%A7%86%E9%A2%91%E5%BD%95%E5%88%B6%E4%B8%8E%E5%90%88%E6%88%90/" />
+<meta property="article:published_time" content="2015-11-24T16:12:26&#43;08:00"/>
+<meta property="article:modified_time" content="2015-11-24T16:12:26&#43;08:00"/>
+
+		
+<meta itemprop="name" content="iOS:视频录制与合成">
+<meta itemprop="description" content="iOS自定义相机视频录制与合成">
+
+
+<meta itemprop="datePublished" content="2015-11-24T16:12:26&#43;08:00" />
+<meta itemprop="dateModified" content="2015-11-24T16:12:26&#43;08:00" />
+<meta itemprop="wordCount" content="0">
+
+
+
+<meta itemprop="keywords" content="相机," />
+
+		<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="iOS:视频录制与合成"/>
+<meta name="twitter:description" content="iOS自定义相机视频录制与合成"/>
+
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<link rel="stylesheet" href="/css/custom.css">
+	<link rel="shortcut icon" href="/favicon.ico">
+		
+</head>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container header__container">
+		
+	<div class="logo">
+		<a class="logo__link" href="/" title="sean" rel="home">
+			<div class="logo__title">sean</div>
+			<div class="logo__tagline">sean&#39;s zone</div>
+		</a>
+	</div>
+		<div class="divider"></div>
+	</div>
+</header>
+
+		<div class="wrapper flex">
+			<div class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">iOS:视频录制与合成</h1>
+			<div class="post__meta meta">
+<div class="meta__item-datetime meta__item">
+	<svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class="meta__text" datetime="2015-11-24T16:12:26&#43;08:00">2015-11-24</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2l1 2h8v11h-16v-13z"/></svg><span class="meta__text"><a class="meta__link" href="/categories/ios/" rel="category">iOS</a>
+	</span>
+</div></div>
+		</header>
+<div class="post__toc toc">
+	<div class="toc__title">Page content</div>
+	<div class="toc__menu">
+		<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#前言">前言</a></li>
+<li><a href="#界面">界面</a></li>
+<li><a href="#实现">实现</a>
+<ul>
+<li><a href="#设计">设计</a></li>
+<li><a href="#设备类videorecorddevice">设备类VideoRecordDevice</a>
+<ul>
+<li><a href="#接口">接口：</a></li>
+<li><a href="#属性懒加载">属性懒加载</a></li>
+<li><a href="#通知">通知：</a></li>
+<li><a href="#初始化">初始化：</a></li>
+<li><a href="#publicmethods">PublicMethods：</a></li>
+<li><a href="#privatemethods">PrivateMethods：</a></li>
+</ul></li>
+<li><a href="#视频合成类videomergeutil">视频合成类VideoMergeUtil</a>
+<ul>
+<li><a href="#接口-1">接口：</a></li>
+<li><a href="#辅助方法实现">辅助方法实现：</a></li>
+<li><a href="#合成方法实现">合成方法实现：</a></li>
+</ul></li>
+<li><a href="#控制器videoviewcontroller">控制器VideoViewController</a>
+<ul>
+<li><a href="#接口-2">接口：</a></li>
+<li><a href="#匿名类别">匿名类别：</a></li>
+<li><a href="#lifecycle">LifeCycle：</a></li>
+<li><a href="#视频输出代理">视频输出代理：</a></li>
+<li><a href="#响应事件">响应事件：</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#使用">使用</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+	</div>
+</div>
+<div class="content post__content clearfix">
+			<p style="font-family:verdana;font-size:120%;color:gray" ,="" align="left">iOS自定义相机进行视频录制与合成</p>
+
+<h3 id="前言">前言</h3>
+
+<p>之前实现了自定义相机来进行拍照，与系统相机的区别也只在于界面UI可以进行自定义。</p>
+
+<p>但是如果需求是录像，并对录像进行合成或者美化的话，系统相机就无法满足需求，本文我们在自定义相机的基础上，进行视频录制合成的实现。</p>
+
+<p>在这里我们使用AVCaptureMovieFileOutput作为输出流，这只是视频录制的一种方式；</p>
+
+<p>我们同样可以使用AVCaptureVideoDataOutput加上AVCaptureAudioDataOutput来进行视频录制；</p>
+
+<p>这里我们使用AVAsset来进行视频合成剪裁，出于篇幅考虑，暂不进行详细解释，</p>
+
+<p>同样，我们可以使用AVAssetWriter加上AVAssetWriterInput来进行合成剪裁；</p>
+
+<p>区别在于，AVCaptureVideoDataOutput，AVCaptureAudioDataOutput配合AVAssetWriter，AVAssetWriterInput的方式更精确与细致，可以操控到录制输出过程中的每个细节。</p>
+
+<h3 id="界面">界面</h3>
+
+<p>视频录制这里的界面我使用的和相机摄像是同一个界面，只要把相应按钮状态，文字做一些改变，最后再添加一个用于显示时间的Label即可，让我们再看一下相机摄像的界面：</p>
+
+<p><img src="../../img/自定义相机界面.png" alt="自定义相机界面" /></p>
+
+<h3 id="实现">实现</h3>
+
+<h4 id="设计">设计</h4>
+
+<p>视频录制与合成，我把它拆分为三个类</p>
+
+<ol>
+<li>VideoRecordDevice设备类；</li>
+<li>VideoMergeUtil视频合成类；</li>
+<li>VideoViewController控制器类。</li>
+</ol>
+
+<p>不同于相机摄像中，使用的AVCaptureStillImageOutput作为照片输出，在这里我们要处理的是音视频数据，区别与静态图片，我们要使用AVCaptureMovieFileOutput作为输出流；</p>
+
+<p>在摄像机中，我们只有一个输入设备和输入流，音视频有两个输入流，AVCaptureDeviceInput <em>deviceInput设备输入 和 AVCaptureDeviceInput</em> audioDeviceInput音频输入；</p>
+
+<h4 id="设备类videorecorddevice">设备类VideoRecordDevice</h4>
+
+<h5 id="接口">接口：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e">#import &lt;UIKit/UIKit.h&gt;
+</span><span style="color:#75715e">#import &lt;AVFoundation/AVFoundation.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">VideoRecordDevice</span> : <span style="color:#a6e22e">NSObject</span>
+<span style="color:#75715e">/// AVCaptureSession 负责输入和输出设置之间的数据传递
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) AVCaptureSession <span style="color:#f92672">*</span> session;
+<span style="color:#75715e">/// AVCaptureDeviceInput 负责从AVCaptureDevice获得输入数据 设备输入
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) AVCaptureDeviceInput <span style="color:#f92672">*</span> deviceInput;
+<span style="color:#75715e">/// AVCaptureDeviceInput 负责从AVCaptureDevice获得输入数据 音频输入
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) AVCaptureDeviceInput <span style="color:#f92672">*</span> audioDeviceInput;
+<span style="color:#75715e">/// AVCaptureStillImageOutput 视频输出流
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) AVCaptureMovieFileOutput <span style="color:#f92672">*</span> movieFileOutPut;
+<span style="color:#75715e">/// AVCaptureVideoPreviewLayer 拍摄预览图层
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) AVCaptureVideoPreviewLayer <span style="color:#f92672">*</span> videoPreviewLayer;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 配置预览层,将视频预览层添加到界面中
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">configPreviewLayerInView:</span>(UIView <span style="color:#f92672">*</span>)view <span style="color:#a6e22e">belowView:</span>(UIView <span style="color:#f92672">*</span>)belowView;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 开启会话
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">deviceStart</span>;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 停止会话
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">deviceStop</span>;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设置闪光灯模式
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param flashMode 闪光灯模式
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">setFlashMode:</span>(AVCaptureFlashMode )flashMode;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  获取闪光灯状态
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">getFlashMode:</span>(<span style="color:#66d9ef">void</span>(<span style="color:#f92672">^</span>)(<span style="color:#66d9ef">BOOL</span> flashAvailable, AVCaptureFlashMode flashMode))flashModeCallback;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  点按手势，点按时聚焦
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">tapScreenPoint:</span>(CGPoint)point;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 切换摄像头
+</span><span style="color:#75715e"> */</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">cameraToggle</span>;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="属性懒加载">属性懒加载</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - Lazy Loading
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (AVCaptureSession <span style="color:#f92672">*</span>)session {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_session) {
+        <span style="color:#75715e">/// 初始化会话
+</span><span style="color:#75715e"></span>        _session <span style="color:#f92672">=</span> [[AVCaptureSession alloc] init];
+        <span style="color:#75715e">/// 设置分辨率
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> ([_session canSetSessionPreset:AVCaptureSessionPresetHigh]) {
+            _session.sessionPreset <span style="color:#f92672">=</span> AVCaptureSessionPresetHigh;
+        }
+    }
+    <span style="color:#66d9ef">return</span> _session;
+}
+<span style="color:#f92672">-</span> (AVCaptureDeviceInput <span style="color:#f92672">*</span>)deviceInput {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_deviceInput) {
+        <span style="color:#75715e">/// 获得输入设备 取得后置摄像头
+</span><span style="color:#75715e"></span>        AVCaptureDevice <span style="color:#f92672">*</span> captureDevice <span style="color:#f92672">=</span> [self getCameraDeviceWithPosition:AVCaptureDevicePositionBack];
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>captureDevice) {
+            NSLog(<span style="color:#e6db74">@&#34;取得后置摄像头出错&#34;</span>);
+        }
+        <span style="color:#75715e">/// 根据输入设备初始化设备输入对象，用于获得输入数据
+</span><span style="color:#75715e"></span>        NSError <span style="color:#f92672">*</span>error<span style="color:#f92672">=</span>nil;
+        _deviceInput <span style="color:#f92672">=</span> [[AVCaptureDeviceInput alloc]initWithDevice:captureDevice error:<span style="color:#f92672">&amp;</span>error];
+        <span style="color:#66d9ef">if</span> (error) {
+            NSLog(<span style="color:#e6db74">@&#34;取得设备输入对象时出错，错误原因：%@&#34;</span>,error.localizedDescription);
+        }
+    }
+    <span style="color:#66d9ef">return</span> _deviceInput;
+}
+<span style="color:#f92672">-</span> (AVCaptureDeviceInput <span style="color:#f92672">*</span>)audioDeviceInput {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_audioDeviceInput) {
+        <span style="color:#75715e">/// 添加一个音频输入设备
+</span><span style="color:#75715e"></span>        AVCaptureDevice <span style="color:#f92672">*</span> audioDevice <span style="color:#f92672">=</span> [[AVCaptureDevice devicesWithMediaType:AVMediaTypeAudio] firstObject];
+        <span style="color:#75715e">/// 根据音频输入设备初始化设备输入对象
+</span><span style="color:#75715e"></span>        NSError <span style="color:#f92672">*</span>error<span style="color:#f92672">=</span>nil;
+        _audioDeviceInput <span style="color:#f92672">=</span> [[AVCaptureDeviceInput alloc] initWithDevice:audioDevice error:<span style="color:#f92672">&amp;</span>error];
+        <span style="color:#66d9ef">if</span> (error){
+            NSLog(<span style="color:#e6db74">@&#34;取得音频设备输入对象时出错，错误原因：%@&#34;</span>,error.localizedDescription);
+        };
+    }
+    <span style="color:#66d9ef">return</span> _audioDeviceInput;
+}
+<span style="color:#f92672">-</span> (AVCaptureMovieFileOutput <span style="color:#f92672">*</span>)movieFileOutPut {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_movieFileOutPut) {
+        <span style="color:#75715e">/// 初始化设备输出对象，用于获得输出数据
+</span><span style="color:#75715e"></span>        _movieFileOutPut <span style="color:#f92672">=</span> [[AVCaptureMovieFileOutput alloc] init];
+    }
+    <span style="color:#66d9ef">return</span> _movieFileOutPut;
+}
+<span style="color:#f92672">-</span> (AVCaptureVideoPreviewLayer <span style="color:#f92672">*</span>)videoPreviewLayer {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_videoPreviewLayer) {
+        <span style="color:#75715e">/// 创建视频预览层，用于实时展示摄像头状态
+</span><span style="color:#75715e"></span>        _videoPreviewLayer <span style="color:#f92672">=</span>[[AVCaptureVideoPreviewLayer alloc] initWithSession:self.session];
+        <span style="color:#75715e">/// 填充模式
+</span><span style="color:#75715e"></span>        _videoPreviewLayer.videoGravity <span style="color:#f92672">=</span> AVLayerVideoGravityResizeAspectFill;
+    }
+    <span style="color:#66d9ef">return</span> _videoPreviewLayer;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="通知">通知：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - 通知
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  给输入设备添加通知
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)addNotificationToCaptureDevice:(AVCaptureDevice <span style="color:#f92672">*</span>)captureDevice {
+    <span style="color:#75715e">//注意添加区域改变捕获通知必须首先设置设备允许捕获
+</span><span style="color:#75715e"></span>    [self changeDeviceProperty:<span style="color:#f92672">^</span>(AVCaptureDevice <span style="color:#f92672">*</span>captureDevice) {
+        captureDevice.subjectAreaChangeMonitoringEnabled<span style="color:#f92672">=</span>YES;
+    }];
+    NSNotificationCenter <span style="color:#f92672">*</span>notificationCenter<span style="color:#f92672">=</span> [NSNotificationCenter defaultCenter];
+    <span style="color:#75715e">//捕获区域发生改变
+</span><span style="color:#75715e"></span>    [notificationCenter addObserver:self selector:<span style="color:#66d9ef">@selector</span>(areaChange:) name:AVCaptureDeviceSubjectAreaDidChangeNotification object:captureDevice];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)removeNotificationFromCaptureDevice:(AVCaptureDevice <span style="color:#f92672">*</span>)captureDevice {
+    NSNotificationCenter <span style="color:#f92672">*</span>notificationCenter<span style="color:#f92672">=</span> [NSNotificationCenter defaultCenter];
+    [notificationCenter removeObserver:self name:AVCaptureDeviceSubjectAreaDidChangeNotification object:captureDevice];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  移除所有通知
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)removeNotification {
+    NSNotificationCenter <span style="color:#f92672">*</span>notificationCenter<span style="color:#f92672">=</span> [NSNotificationCenter defaultCenter];
+    [notificationCenter removeObserver:self];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)addNotificationToCaptureSession:(AVCaptureSession <span style="color:#f92672">*</span>)captureSession {
+    NSNotificationCenter <span style="color:#f92672">*</span>notificationCenter<span style="color:#f92672">=</span> [NSNotificationCenter defaultCenter];
+    <span style="color:#75715e">//会话出错
+</span><span style="color:#75715e"></span>    [notificationCenter addObserver:self selector:<span style="color:#66d9ef">@selector</span>(sessionRuntimeError:) name:AVCaptureSessionRuntimeErrorNotification object:captureSession];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设备连接成功
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param notification 通知对象
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)deviceConnected:(NSNotification <span style="color:#f92672">*</span>)notification {
+    NSLog(<span style="color:#e6db74">@&#34;设备已连接...&#34;</span>);
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设备连接断开
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param notification 通知对象
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)deviceDisconnected:(NSNotification <span style="color:#f92672">*</span>)notification {
+    NSLog(<span style="color:#e6db74">@&#34;设备已断开.&#34;</span>);
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  捕获区域改变
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param notification 通知对象
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)areaChange:(NSNotification <span style="color:#f92672">*</span>)notification {
+    NSLog(<span style="color:#e6db74">@&#34;捕获区域改变...&#34;</span>);
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  会话出错
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param notification 通知对象
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)sessionRuntimeError:(NSNotification <span style="color:#f92672">*</span>)notification {
+    NSLog(<span style="color:#e6db74">@&#34;会话发生错误.&#34;</span>);
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="初始化">初始化：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">instancetype</span>)init {
+    <span style="color:#66d9ef">if</span> (self <span style="color:#f92672">=</span> [super init]) {
+        [self configSession];
+    }
+    <span style="color:#66d9ef">return</span> self;
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)dealloc {
+    [self removeNotification];
+}
+
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)configSession {
+    <span style="color:#75715e">// 将设备输入对象添加到会话中
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([self.session canAddInput:self.deviceInput]) {
+        [self.session addInput:self.deviceInput];
+        [self.session addInput:self.audioDeviceInput];
+        AVCaptureConnection <span style="color:#f92672">*</span> connection <span style="color:#f92672">=</span> [self.movieFileOutPut connectionWithMediaType:AVMediaTypeVideo];
+        <span style="color:#66d9ef">if</span> ([connection isVideoStabilizationSupported]) {
+            connection.preferredVideoStabilizationMode <span style="color:#f92672">=</span> AVCaptureVideoStabilizationModeAuto;
+        }
+    }
+    <span style="color:#75715e">// 将设备输出对象添加到会话中
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([self.session canAddOutput:self.movieFileOutPut]) {
+        [self.session addOutput:self.movieFileOutPut];
+    }
+    AVCaptureDevice <span style="color:#f92672">*</span> captureDevice <span style="color:#f92672">=</span> [self.deviceInput device];
+    [self addNotificationToCaptureDevice:captureDevice];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="publicmethods">PublicMethods：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - Public
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 配置预览层,将视频预览层添加到界面中
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)configPreviewLayerInView:(UIView <span style="color:#f92672">*</span>)view belowView:(UIView <span style="color:#f92672">*</span>)belowView {
+    CALayer <span style="color:#f92672">*</span>layer <span style="color:#f92672">=</span> view.layer;
+    layer.masksToBounds<span style="color:#f92672">=</span>YES;
+    self.videoPreviewLayer.frame<span style="color:#f92672">=</span>layer.bounds;
+    [layer insertSublayer:self.videoPreviewLayer below:belowView.layer];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 开启会话
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)deviceStart {
+    [self.session startRunning];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 停止会话
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)deviceStop {
+    [self.session stopRunning];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设置闪光灯模式
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param flashMode 闪光灯模式
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setFlashMode:(AVCaptureFlashMode )flashMode {
+    [self changeDeviceProperty:<span style="color:#f92672">^</span>(AVCaptureDevice <span style="color:#f92672">*</span>captureDevice) {
+        <span style="color:#66d9ef">if</span> ([captureDevice isFlashModeSupported:flashMode]) {
+            [captureDevice setFlashMode:flashMode];
+        }
+    }];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设置闪光灯按钮状态
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)getFlashMode:(<span style="color:#66d9ef">void</span>(<span style="color:#f92672">^</span>)(<span style="color:#66d9ef">BOOL</span> flashAvailable, AVCaptureFlashMode flashMode))flashModeCallback {
+    AVCaptureDevice <span style="color:#f92672">*</span>captureDevice <span style="color:#f92672">=</span> [self.deviceInput device];
+    AVCaptureFlashMode flashMode <span style="color:#f92672">=</span> captureDevice.flashMode;
+    flashModeCallback([captureDevice isFlashAvailable], flashMode);
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  点按手势，点按时聚焦
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)tapScreenPoint:(CGPoint)point {
+    <span style="color:#75715e">//将UI坐标转化为摄像头坐标
+</span><span style="color:#75715e"></span>    CGPoint cameraPoint <span style="color:#f92672">=</span> [self.videoPreviewLayer captureDevicePointOfInterestForPoint:point];
+    [self focusWithMode:AVCaptureFocusModeAutoFocus exposureMode:AVCaptureExposureModeAutoExpose atPoint:cameraPoint];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 切换摄像头
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)cameraToggle {
+    AVCaptureDevice <span style="color:#f92672">*</span>currentDevice<span style="color:#f92672">=</span>[self.deviceInput device];
+    AVCaptureDevicePosition currentPosition<span style="color:#f92672">=</span>[currentDevice position];
+    [self removeNotificationFromCaptureDevice:currentDevice];
+    AVCaptureDevice <span style="color:#f92672">*</span>toChangeDevice;
+    AVCaptureDevicePosition toChangePosition<span style="color:#f92672">=</span>AVCaptureDevicePositionFront;
+    
+    <span style="color:#66d9ef">if</span> (currentPosition<span style="color:#f92672">==</span>AVCaptureDevicePositionUnspecified<span style="color:#f92672">||</span>currentPosition<span style="color:#f92672">==</span>AVCaptureDevicePositionFront) {
+        toChangePosition<span style="color:#f92672">=</span>AVCaptureDevicePositionBack;
+    }
+    toChangeDevice<span style="color:#f92672">=</span>[self getCameraDeviceWithPosition:toChangePosition];
+    [self addNotificationToCaptureDevice:toChangeDevice];
+    <span style="color:#75715e">//获得要调整的设备输入对象
+</span><span style="color:#75715e"></span>    AVCaptureDeviceInput <span style="color:#f92672">*</span>toChangeDeviceInput<span style="color:#f92672">=</span>[[AVCaptureDeviceInput alloc]initWithDevice:toChangeDevice error:nil];
+    
+    <span style="color:#75715e">//改变会话的配置前一定要先开启配置，配置完成后提交配置改变
+</span><span style="color:#75715e"></span>    [self.session beginConfiguration];
+    <span style="color:#75715e">//移除原有输入对象
+</span><span style="color:#75715e"></span>    [self.session removeInput:self.deviceInput];
+    <span style="color:#75715e">//添加新的输入对象
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([self.session canAddInput:toChangeDeviceInput]) {
+        [self.session addInput:toChangeDeviceInput];
+        self.deviceInput<span style="color:#f92672">=</span>toChangeDeviceInput;
+    }
+    <span style="color:#75715e">//提交会话配置
+</span><span style="color:#75715e"></span>    [self.session commitConfiguration];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="privatemethods">PrivateMethods：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - 私有方法
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  取得指定位置的摄像头
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param position 摄像头位置
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @return 摄像头设备
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (AVCaptureDevice <span style="color:#f92672">*</span>)getCameraDeviceWithPosition:(AVCaptureDevicePosition )position {
+    NSArray <span style="color:#f92672">*</span>cameras<span style="color:#f92672">=</span> [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    <span style="color:#66d9ef">for</span> (AVCaptureDevice <span style="color:#f92672">*</span>camera <span style="color:#66d9ef">in</span> cameras) {
+        <span style="color:#66d9ef">if</span> ([camera position]<span style="color:#f92672">==</span>position) {
+            <span style="color:#66d9ef">return</span> camera;
+        }
+    }
+    <span style="color:#66d9ef">return</span> nil;
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  改变设备属性的统一操作方法
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param propertyChange 属性改变操作
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)changeDeviceProperty:(<span style="color:#66d9ef">void</span>(<span style="color:#f92672">^</span>)(AVCaptureDevice <span style="color:#f92672">*</span>captureDevice))propertyChange {
+    AVCaptureDevice <span style="color:#f92672">*</span>captureDevice<span style="color:#f92672">=</span> [self.deviceInput device];
+    NSError <span style="color:#f92672">*</span>error;
+    <span style="color:#75715e">//注意改变设备属性前一定要首先调用lockForConfiguration:调用完之后使用unlockForConfiguration方法解锁
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> ([captureDevice lockForConfiguration:<span style="color:#f92672">&amp;</span>error]) {
+        propertyChange(captureDevice);
+        [captureDevice unlockForConfiguration];
+    } <span style="color:#66d9ef">else</span> {
+        NSLog(<span style="color:#e6db74">@&#34;设置设备属性过程发生错误，错误信息：%@&#34;</span>,error.localizedDescription);
+    }
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设置聚焦模式
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param focusMode 聚焦模式
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setFocusMode:(AVCaptureFocusMode )focusMode {
+    [self changeDeviceProperty:<span style="color:#f92672">^</span>(AVCaptureDevice <span style="color:#f92672">*</span>captureDevice) {
+        <span style="color:#66d9ef">if</span> ([captureDevice isFocusModeSupported:focusMode]) {
+            [captureDevice setFocusMode:focusMode];
+        }
+    }];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设置曝光模式
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param exposureMode 曝光模式
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setExposureMode:(AVCaptureExposureMode)exposureMode {
+    [self changeDeviceProperty:<span style="color:#f92672">^</span>(AVCaptureDevice <span style="color:#f92672">*</span>captureDevice) {
+        <span style="color:#66d9ef">if</span> ([captureDevice isExposureModeSupported:exposureMode]){
+            [captureDevice setExposureMode:exposureMode];
+        }
+    }];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设置聚焦点
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param point 聚焦点
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)focusWithMode:(AVCaptureFocusMode)focusMode exposureMode:(AVCaptureExposureMode)exposureMode atPoint:(CGPoint)point {
+    [self changeDeviceProperty:<span style="color:#f92672">^</span>(AVCaptureDevice <span style="color:#f92672">*</span>captureDevice) {
+        <span style="color:#66d9ef">if</span> ([captureDevice isFocusModeSupported:focusMode]) {
+            [captureDevice setFocusMode:AVCaptureFocusModeAutoFocus];
+        }
+        <span style="color:#66d9ef">if</span> ([captureDevice isFocusPointOfInterestSupported]) {
+            [captureDevice setFocusPointOfInterest:point];
+        }
+        <span style="color:#66d9ef">if</span> ([captureDevice isExposureModeSupported:exposureMode]) {
+            [captureDevice setExposureMode:AVCaptureExposureModeAutoExpose];
+        }
+        <span style="color:#66d9ef">if</span> ([captureDevice isExposurePointOfInterestSupported]) {
+            [captureDevice setExposurePointOfInterest:point];
+        }
+    }];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="视频合成类videomergeutil">视频合成类VideoMergeUtil</h4>
+
+<h5 id="接口-1">接口：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;Foundation/Foundation.h&gt;
+</span><span style="color:#75715e">#import &lt;UIKit/UIKit.h&gt;
+</span><span style="color:#75715e">#import &lt;AVFoundation/AVFoundation.h&gt;
+</span><span style="color:#75715e">#define VIDEO_FOLDER    @&#34;videos&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">VideoMergeUtil</span> : <span style="color:#a6e22e">NSObject</span>
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 获取文件的大小，单位是KB。
+</span><span style="color:#75715e"> */</span>
++ (CGFloat)<span style="color:#a6e22e">getFileSize:</span>(NSString <span style="color:#f92672">*</span>)path;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 获取视频文件的时长
+</span><span style="color:#75715e"> */</span>
++ (CGFloat)<span style="color:#a6e22e">getVideoLength:</span>(NSURL <span style="color:#f92672">*</span>)URL;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 获取并创建视频路径
+</span><span style="color:#75715e"> */</span>
++ (NSString <span style="color:#f92672">*</span>)<span style="color:#a6e22e">getVideoSaveFilePathString</span>;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 获取合成后的视频路径
+</span><span style="color:#75715e"> */</span>
++ (NSString <span style="color:#f92672">*</span>)<span style="color:#a6e22e">getVideoMergeFilePathString</span>;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 拼接合成视频
+</span><span style="color:#75715e"> */</span>
++ (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">mergeVideosWithFileURLs:</span>(NSArray <span style="color:#f92672">*</span>)fileURLs <span style="color:#a6e22e">Result:</span>(<span style="color:#66d9ef">void</span>(<span style="color:#f92672">^</span>)(NSString <span style="color:#f92672">*</span> videoPath, NSURL <span style="color:#f92672">*</span> videoURL))result;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="辅助方法实现">辅助方法实现：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - 获取视频大小及时长
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 获取文件的大小，单位是KB。
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (CGFloat)getFileSize:(NSString <span style="color:#f92672">*</span>)path {
+    NSFileManager <span style="color:#f92672">*</span>fileManager <span style="color:#f92672">=</span> [[NSFileManager alloc] init] ;
+    <span style="color:#66d9ef">float</span> filesize <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1.0</span>;
+    <span style="color:#66d9ef">if</span> ([fileManager fileExistsAtPath:path]) {
+        NSDictionary <span style="color:#f92672">*</span>fileDic <span style="color:#f92672">=</span> [fileManager attributesOfItemAtPath:path error:nil];<span style="color:#75715e">//获取文件的属性
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> size <span style="color:#f92672">=</span> [[fileDic objectForKey:NSFileSize] longLongValue];
+        filesize <span style="color:#f92672">=</span> <span style="color:#ae81ff">1.0</span><span style="color:#f92672">*</span>size<span style="color:#f92672">/</span><span style="color:#ae81ff">1024</span>;
+    }
+    <span style="color:#66d9ef">return</span> filesize;
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 获取视频文件的时长
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (CGFloat)getVideoLength:(NSURL <span style="color:#f92672">*</span>)URL {
+    NSDictionary <span style="color:#f92672">*</span>opts <span style="color:#f92672">=</span> [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:NO]
+                                                     forKey:AVURLAssetPreferPreciseDurationAndTimingKey];
+    AVURLAsset <span style="color:#f92672">*</span>urlAsset <span style="color:#f92672">=</span> [AVURLAsset URLAssetWithURL:URL options:opts];
+    <span style="color:#66d9ef">float</span> second <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    second <span style="color:#f92672">=</span> urlAsset.duration.value<span style="color:#f92672">/</span>urlAsset.duration.timescale;
+    <span style="color:#66d9ef">return</span> second;
+}
+<span style="color:#75715e">#pragma mark - 创建视频目录及文件
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 获取并创建视频路径
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (NSString <span style="color:#f92672">*</span>)getVideoSaveFilePathString {
+    NSString <span style="color:#f92672">*</span> path <span style="color:#f92672">=</span> NSTemporaryDirectory();
+    NSDateFormatter <span style="color:#f92672">*</span>formatter <span style="color:#f92672">=</span> [[NSDateFormatter alloc] init];
+    formatter.dateFormat <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;yyyyMMddHHmmss&#34;</span>;
+    NSString <span style="color:#f92672">*</span>nowTimeStr <span style="color:#f92672">=</span> [formatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:<span style="color:#ae81ff">0</span>]];
+    NSString <span style="color:#f92672">*</span>fileName <span style="color:#f92672">=</span> [[path stringByAppendingPathComponent:nowTimeStr] stringByAppendingString:<span style="color:#e6db74">@&#34;.mp4&#34;</span>];
+    <span style="color:#66d9ef">return</span> fileName;
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 获取合成后的视频路径
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (NSString <span style="color:#f92672">*</span>)getVideoMergeFilePathString {
+    NSString <span style="color:#f92672">*</span> path <span style="color:#f92672">=</span> NSTemporaryDirectory(); 
+    NSDateFormatter <span style="color:#f92672">*</span>formatter <span style="color:#f92672">=</span> [[NSDateFormatter alloc] init];
+    formatter.dateFormat <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;yyyyMMddHHmmss&#34;</span>;
+    NSString <span style="color:#f92672">*</span>nowTimeStr <span style="color:#f92672">=</span> [formatter stringFromDate:[NSDate dateWithTimeIntervalSinceNow:<span style="color:#ae81ff">0</span>]];
+    NSString <span style="color:#f92672">*</span>fileName <span style="color:#f92672">=</span> [[path stringByAppendingPathComponent:nowTimeStr] stringByAppendingString:<span style="color:#e6db74">@&#34;merge.mp4&#34;</span>];
+    <span style="color:#66d9ef">return</span> fileName;
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="合成方法实现">合成方法实现：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - 合成文件
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 拼接合成视频
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">+</span> (<span style="color:#66d9ef">void</span>)mergeVideosWithFileURLs:(NSArray <span style="color:#f92672">*</span>)fileURLs Result:(<span style="color:#66d9ef">void</span>(<span style="color:#f92672">^</span>)(NSString <span style="color:#f92672">*</span> videoPath, NSURL <span style="color:#f92672">*</span> videoURL))result {
+    
+    <span style="color:#75715e">//    AVAsset：素材库里的素材；
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//    AVAssetTrack：素材的轨道；
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//    AVMutableComposition ：一个用来合成视频的工程文件；
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//    AVMutableCompositionTrack ：工程文件中的轨道，有音频轨、视频轨等，里面可以插入各种对应的素材；
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//    AVMutableVideoCompositionLayerInstruction：视频轨道中的一个视频，可以缩放、旋转等；
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//    AVMutableVideoCompositionInstruction：一个视频轨道，包含了这个轨道上的所有视频素材；
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//    AVMutableVideoComposition：管理所有视频轨道，可以决定最终视频的尺寸，裁剪需要在这里进行；
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//    AVAssetExportSession：配置渲染参数并渲染。
+</span><span style="color:#75715e"></span>    
+    <span style="color:#75715e">// 1.将素材拖入到素材库中
+</span><span style="color:#75715e"></span>    NSError <span style="color:#f92672">*</span>error <span style="color:#f92672">=</span> nil;
+    CGSize renderSize <span style="color:#f92672">=</span> CGSizeMake(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>);
+    NSMutableArray <span style="color:#f92672">*</span>layerInstructionArray <span style="color:#f92672">=</span> [[NSMutableArray alloc] init];
+    <span style="color:#75715e">// 这是工程文件
+</span><span style="color:#75715e"></span>    AVMutableComposition <span style="color:#f92672">*</span>mixComposition <span style="color:#f92672">=</span> [[AVMutableComposition alloc] init];
+    CMTime totalDuration <span style="color:#f92672">=</span> kCMTimeZero;
+    <span style="color:#75715e">// 先去assetTrack 也为了取renderSize
+</span><span style="color:#75715e"></span>    NSMutableArray <span style="color:#f92672">*</span>assetTrackArray <span style="color:#f92672">=</span> [[NSMutableArray alloc] init];
+    NSMutableArray <span style="color:#f92672">*</span>assetArray <span style="color:#f92672">=</span> [[NSMutableArray alloc] init];  
+    <span style="color:#66d9ef">for</span> (NSURL <span style="color:#f92672">*</span>fileURL <span style="color:#66d9ef">in</span> fileURLs) {
+        AVAsset <span style="color:#f92672">*</span>asset <span style="color:#f92672">=</span> [AVAsset assetWithURL:fileURL];
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>asset) {
+            <span style="color:#66d9ef">continue</span>;
+        }
+        [assetArray addObject:asset];
+        AVAssetTrack <span style="color:#f92672">*</span>assetTrack <span style="color:#f92672">=</span> [[asset tracksWithMediaType:<span style="color:#e6db74">@&#34;vide&#34;</span>] objectAtIndex:<span style="color:#ae81ff">0</span>];
+        [assetTrackArray addObject:assetTrack];
+        renderSize.width <span style="color:#f92672">=</span> MAX(renderSize.width, assetTrack.naturalSize.height);
+        renderSize.height <span style="color:#f92672">=</span> MAX(renderSize.height, assetTrack.naturalSize.width);
+    }
+  
+    CGFloat renderW <span style="color:#f92672">=</span> MIN(renderSize.width, renderSize.height);
+    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> [assetArray count] <span style="color:#f92672">&amp;&amp;</span> i <span style="color:#f92672">&lt;</span> [assetTrackArray count]; i<span style="color:#f92672">++</span>) {
+        <span style="color:#75715e">// 2.将素材的视频插入视频轨，音频插入音频轨
+</span><span style="color:#75715e"></span>        AVAsset <span style="color:#f92672">*</span>asset <span style="color:#f92672">=</span> [assetArray objectAtIndex:i];
+        AVAssetTrack <span style="color:#f92672">*</span>assetTrack <span style="color:#f92672">=</span> [assetTrackArray objectAtIndex:i];
+        <span style="color:#75715e">// 一个 audio 轨道
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// AVMutableCompositionTrack provides a convenient interface for insertion, removals, and scaling of track
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// 合成音频轨道    进行插入、缩放、删除
+</span><span style="color:#75715e"></span>        AVMutableCompositionTrack <span style="color:#f92672">*</span>audioTrack <span style="color:#f92672">=</span> [mixComposition addMutableTrackWithMediaType:AVMediaTypeAudio preferredTrackID:kCMPersistentTrackID_Invalid];
+        <span style="color:#75715e">// 把录制的 audio 插入到 AVMutableCompositionTrack
+</span><span style="color:#75715e"></span>        [audioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, asset.duration)
+                            ofTrack:[[asset tracksWithMediaType:AVMediaTypeAudio] objectAtIndex:<span style="color:#ae81ff">0</span>]
+                             atTime:totalDuration
+                              error:nil];
+        <span style="color:#75715e">// 合成视频轨道
+</span><span style="color:#75715e"></span>        AVMutableCompositionTrack <span style="color:#f92672">*</span>videoTrack <span style="color:#f92672">=</span> [mixComposition addMutableTrackWithMediaType:AVMediaTypeVideo preferredTrackID:kCMPersistentTrackID_Invalid];
+        <span style="color:#75715e">// 把录制的第一段 视频轨道插入到 AVMutableCompositionTrack
+</span><span style="color:#75715e"></span>        [videoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, asset.duration)
+                            ofTrack:assetTrack
+                             atTime:totalDuration
+                              error:<span style="color:#f92672">&amp;</span>error];
+        
+        <span style="color:#75715e">/// 3.裁剪视频，就是要将所有视频轨进行裁剪，就需要得到所有的视频轨，而得到一个视频轨就需要得到它上面所有的视频素材
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// fix orientationissue
+</span><span style="color:#75715e"></span>        AVMutableVideoCompositionLayerInstruction <span style="color:#f92672">*</span>layerInstruciton <span style="color:#f92672">=</span> [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:videoTrack];
+        totalDuration <span style="color:#f92672">=</span> CMTimeAdd(totalDuration, asset.duration);
+        CGFloat rate;
+        rate <span style="color:#f92672">=</span> renderW <span style="color:#f92672">/</span> MIN(assetTrack.naturalSize.width, assetTrack.naturalSize.height);
+        
+        CGAffineTransform layerTransform <span style="color:#f92672">=</span> CGAffineTransformMake(assetTrack.preferredTransform.a, assetTrack.preferredTransform.b, assetTrack.preferredTransform.c, assetTrack.preferredTransform.d, assetTrack.preferredTransform.tx <span style="color:#f92672">*</span> rate, assetTrack.preferredTransform.ty <span style="color:#f92672">*</span> rate);
+        layerTransform <span style="color:#f92672">=</span> CGAffineTransformConcat(layerTransform, CGAffineTransformMake(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span>(assetTrack.naturalSize.width <span style="color:#f92672">-</span> assetTrack.naturalSize.height) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2.0</span>));<span style="color:#75715e">//向上移动取中部影响
+</span><span style="color:#75715e"></span>        layerTransform <span style="color:#f92672">=</span> CGAffineTransformScale(layerTransform, rate, rate);<span style="color:#75715e">//放缩，解决前后摄像结果大小不对称
+</span><span style="color:#75715e"></span>        
+        [layerInstruciton setTransform:layerTransform atTime:kCMTimeZero];
+        [layerInstruciton setOpacity:<span style="color:#ae81ff">0.0</span> atTime:totalDuration];
+        <span style="color:#75715e">//data
+</span><span style="color:#75715e"></span>        [layerInstructionArray addObject:layerInstruciton];
+    }
+    
+    <span style="color:#75715e">// get save path
+</span><span style="color:#75715e"></span>    NSString <span style="color:#f92672">*</span>filePath <span style="color:#f92672">=</span> [self getVideoMergeFilePathString];
+    NSURL <span style="color:#f92672">*</span>mergeFileURL <span style="color:#f92672">=</span> [NSURL fileURLWithPath:filePath];
+    <span style="color:#75715e">// 得到视频素材
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// export
+</span><span style="color:#75715e"></span>    AVMutableVideoCompositionInstruction <span style="color:#f92672">*</span>mainInstruciton <span style="color:#f92672">=</span> [AVMutableVideoCompositionInstruction videoCompositionInstruction];
+    mainInstruciton.timeRange <span style="color:#f92672">=</span> CMTimeRangeMake(kCMTimeZero, totalDuration);
+    mainInstruciton.layerInstructions <span style="color:#f92672">=</span> layerInstructionArray;
+    <span style="color:#75715e">// 裁剪出对应的大小
+</span><span style="color:#75715e"></span>    AVMutableVideoComposition <span style="color:#f92672">*</span>mainCompositionInst <span style="color:#f92672">=</span> [AVMutableVideoComposition videoComposition];
+    mainCompositionInst.instructions <span style="color:#f92672">=</span> <span style="color:#ae81ff">@[</span>mainInstruciton<span style="color:#ae81ff">]</span>;
+    mainCompositionInst.frameDuration <span style="color:#f92672">=</span> CMTimeMake(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">30</span>);
+    mainCompositionInst.renderSize <span style="color:#f92672">=</span> CGSizeMake(renderW, renderW);
+    
+    <span style="color:#75715e">/// 4.导出
+</span><span style="color:#75715e"></span>    AVAssetExportSession <span style="color:#f92672">*</span>exporter <span style="color:#f92672">=</span> [[AVAssetExportSession alloc] initWithAsset:mixComposition presetName:AVAssetExportPresetMediumQuality];
+    exporter.videoComposition <span style="color:#f92672">=</span> mainCompositionInst;
+    exporter.outputURL <span style="color:#f92672">=</span> mergeFileURL;
+    exporter.outputFileType <span style="color:#f92672">=</span> AVFileTypeMPEG4;
+    exporter.shouldOptimizeForNetworkUse <span style="color:#f92672">=</span> YES;
+    [exporter exportAsynchronouslyWithCompletionHandler:<span style="color:#f92672">^</span>{
+        dispatch_async(dispatch_get_main_queue(), <span style="color:#f92672">^</span>{
+            <span style="color:#66d9ef">if</span> (result){
+                result(filePath, mergeFileURL);
+            }
+        });
+    }];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h4 id="控制器videoviewcontroller">控制器VideoViewController</h4>
+
+<h5 id="接口-2">接口：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &lt;UIKit/UIKit.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@protocol</span> <span style="color:#a6e22e">VideoRecordDelegate</span> <span style="color:#f92672">&lt;</span>NSObject<span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)videoRecordDidFinished:(NSURL <span style="color:#f92672">*</span>)videoURL;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">VideoViewController</span> : <span style="color:#a6e22e">UIViewController</span>
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">assign</span>) <span style="color:#66d9ef">BOOL</span> isSaveAlbum;
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">weak</span>) <span style="color:#66d9ef">id</span><span style="color:#f92672">&lt;</span>VideoRecordDelegate<span style="color:#f92672">&gt;</span> delegate;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="匿名类别">匿名类别：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;VideoViewController.h&#34;
+</span><span style="color:#75715e">#import &lt;AVFoundation/AVFoundation.h&gt;
+</span><span style="color:#75715e">#import &lt;AssetsLibrary/AssetsLibrary.h&gt;
+</span><span style="color:#75715e">#import &#34;VideoMergeUtil.h&#34;
+</span><span style="color:#75715e">#import &#34;VideoRecordDevice.h&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">VideoViewController</span> ()
+<span style="color:#f92672">&lt;</span>AVCaptureFileOutputRecordingDelegate<span style="color:#f92672">&gt;</span>
+{
+    <span style="color:#75715e">/// 闪光相关灯按钮
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIButton <span style="color:#f92672">*</span> _flashLightAutoButton;
+    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIButton <span style="color:#f92672">*</span> _flashLightOnButton;
+    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIButton <span style="color:#f92672">*</span> _flashLightOffButton;
+    <span style="color:#75715e">/// 录像按钮
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIButton <span style="color:#f92672">*</span> _takeVideoButton;
+    <span style="color:#75715e">/// 取消按钮
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIButton <span style="color:#f92672">*</span> _cancelButton;
+    <span style="color:#75715e">/// 使用录像按钮
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIButton <span style="color:#f92672">*</span> _useVideoButton;
+    <span style="color:#75715e">/// 图像预览层
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIView <span style="color:#f92672">*</span> _containerView;
+    <span style="color:#75715e">/// 聚焦光标
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIImageView <span style="color:#f92672">*</span> _focusCursor;
+    
+    <span style="color:#75715e">/// 后台任务标识
+</span><span style="color:#75715e"></span>    UIBackgroundTaskIdentifier _bgTaskId;
+    <span style="color:#75715e">/// 录制时间
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UILabel <span style="color:#f92672">*</span> _timeLabel;
+    CGFloat _time;
+    dispatch_source_t _timer;
+}
+<span style="color:#66d9ef">@property</span> (<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) VideoRecordDevice <span style="color:#f92672">*</span> videoRecordDevice;
+<span style="color:#66d9ef">@property</span>(<span style="color:#66d9ef">nonatomic</span>, <span style="color:#66d9ef">strong</span>) NSMutableArray <span style="color:#f92672">*</span> fileURLs;
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="lifecycle">LifeCycle：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewDidLoad {
+    [super viewDidLoad];
+    _time <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0f</span>;
+    _videoRecordDevice <span style="color:#f92672">=</span> [[VideoRecordDevice alloc] init];
+    [_videoRecordDevice configPreviewLayerInView:_containerView belowView:_focusCursor];
+    [self setFlashModeButtonStatus];
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewDidAppear:(<span style="color:#66d9ef">BOOL</span>)animated {
+    [super viewDidAppear:animated];
+    [_videoRecordDevice deviceStart];
+}
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)viewDidDisappear:(<span style="color:#66d9ef">BOOL</span>)animated {
+    [super viewDidDisappear:animated];
+    [_videoRecordDevice deviceStop];
+}
+<span style="color:#f92672">-</span> (NSMutableArray <span style="color:#f92672">*</span>)fileURLs {
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>_fileURLs){
+        _fileURLs <span style="color:#f92672">=</span> [NSMutableArray array];
+    }
+    <span style="color:#66d9ef">return</span> _fileURLs;
+}
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设置闪光灯按钮状态
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setFlashModeButtonStatus {
+    [_videoRecordDevice getFlashMode:<span style="color:#f92672">^</span>(<span style="color:#66d9ef">BOOL</span> flashAvailable, AVCaptureFlashMode flashMode) {
+        <span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span>flashAvailable) {
+            _flashLightAutoButton.hidden<span style="color:#f92672">=</span>YES;
+            _flashLightOnButton.hidden<span style="color:#f92672">=</span>YES;
+            _flashLightOffButton.hidden<span style="color:#f92672">=</span>YES;
+            <span style="color:#66d9ef">return</span> ;
+        }
+        _flashLightAutoButton.hidden<span style="color:#f92672">=</span>NO;
+        _flashLightOnButton.hidden<span style="color:#f92672">=</span>NO;
+        _flashLightOffButton.hidden<span style="color:#f92672">=</span>NO;
+        _flashLightAutoButton.enabled<span style="color:#f92672">=</span>YES;
+        _flashLightOnButton.enabled<span style="color:#f92672">=</span>YES;
+        _flashLightOffButton.enabled<span style="color:#f92672">=</span>YES;
+        
+        <span style="color:#66d9ef">switch</span> (flashMode) {
+            <span style="color:#66d9ef">case</span> AVCaptureFlashModeAuto:
+                _flashLightAutoButton.enabled<span style="color:#f92672">=</span>NO;
+                <span style="color:#66d9ef">break</span>;
+            <span style="color:#66d9ef">case</span> AVCaptureFlashModeOn:
+                _flashLightOnButton.enabled<span style="color:#f92672">=</span>NO;
+                <span style="color:#66d9ef">break</span>;
+            <span style="color:#66d9ef">case</span> AVCaptureFlashModeOff:
+                _flashLightOffButton.enabled<span style="color:#f92672">=</span>NO;
+                <span style="color:#66d9ef">break</span>;
+            <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>
+                <span style="color:#66d9ef">break</span>;
+        }
+    }];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  设置聚焦光标位置
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> *  @param point 光标位置
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)setFocusCursorWithPoint:(CGPoint)point {
+    _focusCursor.center<span style="color:#f92672">=</span>point;
+    _focusCursor.transform<span style="color:#f92672">=</span>CGAffineTransformMakeScale(<span style="color:#ae81ff">1.5</span>, <span style="color:#ae81ff">1.5</span>);
+    _focusCursor.alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">1.0</span>;
+    [UIView animateWithDuration:<span style="color:#ae81ff">1.0</span> animations:<span style="color:#f92672">^</span>{
+        _focusCursor.transform<span style="color:#f92672">=</span>CGAffineTransformIdentity;
+    } completion:<span style="color:#f92672">^</span>(<span style="color:#66d9ef">BOOL</span> finished) {
+        _focusCursor.alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>;
+    }];
+}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="视频输出代理">视频输出代理：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - 视频输出代理
+</span><span style="color:#75715e"></span><span style="color:#75715e">/// 视频开始录制
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)captureOutput:(AVCaptureFileOutput <span style="color:#f92672">*</span>)captureOutput didStartRecordingToOutputFileAtURL:(NSURL <span style="color:#f92672">*</span>)fileURL fromConnections:(NSArray <span style="color:#f92672">*</span>)connections {
+    _timer <span style="color:#f92672">=</span> dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, dispatch_get_main_queue());
+    dispatch_source_set_timer(_timer, DISPATCH_TIME_NOW, <span style="color:#ae81ff">0.025</span> <span style="color:#f92672">*</span> NSEC_PER_SEC, <span style="color:#ae81ff">0</span> <span style="color:#f92672">*</span> NSEC_PER_SEC);
+    dispatch_source_set_event_handler(_timer, <span style="color:#f92672">^</span>{ 
+        _time <span style="color:#f92672">+=</span> <span style="color:#ae81ff">0.025</span>;
+        NSDateFormatter <span style="color:#f92672">*</span> formatter <span style="color:#f92672">=</span> [[NSDateFormatter alloc] init];
+        [formatter setDateFormat:<span style="color:#e6db74">@&#34;mm:ss&#34;</span>];
+        NSDate <span style="color:#f92672">*</span> oriDate <span style="color:#f92672">=</span> [formatter dateFromString:<span style="color:#e6db74">@&#34;00:00&#34;</span>];
+        NSDate <span style="color:#f92672">*</span> date <span style="color:#f92672">=</span> [NSDate dateWithTimeInterval:_time sinceDate:oriDate];
+        _timeLabel.text <span style="color:#f92672">=</span> [formatter stringFromDate:date];
+    });
+    dispatch_resume(_timer);
+}
+<span style="color:#75715e">/// 视频结束录制
+</span><span style="color:#75715e"></span><span style="color:#f92672">-</span> (<span style="color:#66d9ef">void</span>)captureOutput:(AVCaptureFileOutput <span style="color:#f92672">*</span>)captureOutput didFinishRecordingToOutputFileAtURL:(NSURL <span style="color:#f92672">*</span>)outputFileURL fromConnections:(NSArray <span style="color:#f92672">*</span>)connections error:(NSError <span style="color:#f92672">*</span>)error {
+    <span style="color:#75715e">// 如果不做其他处理，此处即为录制得到的视频信息
+</span><span style="color:#75715e"></span>}
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h5 id="响应事件">响应事件：</h5>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#pragma mark - React Events
+</span><span style="color:#75715e"></span><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 退出
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)exitTakeCamera {
+    [self dismissViewControllerAnimated:true completion:nil];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 闪光灯切换
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)flashLightChanged:(UIButton <span style="color:#f92672">*</span>)sender {
+    <span style="color:#66d9ef">switch</span> (sender.tag) {
+        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">:</span> <span style="color:#75715e">//关闭闪光灯
+</span><span style="color:#75715e"></span>        {
+            [_videoRecordDevice setFlashMode:AVCaptureFlashModeOff];
+            [self setFlashModeButtonStatus];
+            <span style="color:#66d9ef">break</span>;
+        }
+        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">:</span> <span style="color:#75715e">//打开闪光灯
+</span><span style="color:#75715e"></span>        {
+            [_videoRecordDevice setFlashMode:AVCaptureFlashModeOn];
+            [self setFlashModeButtonStatus];
+            <span style="color:#66d9ef">break</span>;
+        }
+        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">:</span> <span style="color:#75715e">//自动闪光灯开启
+</span><span style="color:#75715e"></span>        {
+            [_videoRecordDevice setFlashMode:AVCaptureFlashModeAuto];
+            [self setFlashModeButtonStatus];
+            <span style="color:#66d9ef">break</span>;
+        }
+    }
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 摄像头切换
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)toggleCamera:(UIButton <span style="color:#f92672">*</span>)sender {
+    [_videoRecordDevice cameraToggle];
+    [self setFlashModeButtonStatus];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 视频录制
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)takeVideo:(UIButton <span style="color:#f92672">*</span>)sender {
+    <span style="color:#75715e">// 根据设备输出获得连接
+</span><span style="color:#75715e"></span>    AVCaptureConnection <span style="color:#f92672">*</span> connection <span style="color:#f92672">=</span> [_videoRecordDevice.movieFileOutPut connectionWithMediaType:AVMediaTypeVideo];
+    <span style="color:#75715e">// 根据状态的逻辑相应
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (sender.selected){
+        <span style="color:#75715e">// 设备正在录制，停止录制
+</span><span style="color:#75715e"></span>        [_videoRecordDevice.movieFileOutPut stopRecording];
+        <span style="color:#66d9ef">if</span> (_timer){
+            dispatch_source_cancel(_timer);
+        }
+        _useVideoButton.hidden <span style="color:#f92672">=</span> false;
+        _cancelButton.hidden <span style="color:#f92672">=</span> false;
+    } <span style="color:#66d9ef">else</span> {
+        <span style="color:#75715e">// 如果支持多任务则则开始多任务
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> ([[UIDevice currentDevice] isMultitaskingSupported]) {
+            _bgTaskId <span style="color:#f92672">=</span> [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:nil];
+        }
+        <span style="color:#75715e">/// 根据连接取得设备输出的数据
+</span><span style="color:#75715e"></span>      
+        <span style="color:#75715e">/// 预览图层和视频方向保持一致
+</span><span style="color:#75715e"></span>        connection.videoOrientation <span style="color:#f92672">=</span> [_videoRecordDevice.videoPreviewLayer connection].videoOrientation;
+        
+        <span style="color:#75715e">/// 根据路径写入视频流
+</span><span style="color:#75715e">//        NSString * path = [NSTemporaryDirectory() stringByAppendingString:@&#34;tempVideo.mp4&#34;];
+</span><span style="color:#75715e"></span>        NSString <span style="color:#f92672">*</span> path <span style="color:#f92672">=</span> [LyraVideoMergeUtil getVideoSaveFilePathString];
+        NSURL <span style="color:#f92672">*</span> videoURL <span style="color:#f92672">=</span> [NSURL fileURLWithPath:path];
+        [self.fileURLs addObject:videoURL];
+        [_videoRecordDevice.movieFileOutPut startRecordingToOutputFileURL:videoURL recordingDelegate:self];
+        _useVideoButton.hidden <span style="color:#f92672">=</span> true;
+        _cancelButton.hidden <span style="color:#f92672">=</span> true;
+    }
+    sender.selected <span style="color:#f92672">=</span> <span style="color:#f92672">!</span>sender.selected;
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 录制后使用视频
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)useVideo {
+    [VideoMergeUtil mergeVideosWithFileURLs:self.fileURLs Result:<span style="color:#f92672">^</span>(NSString <span style="color:#f92672">*</span>videoPath, NSURL <span style="color:#f92672">*</span>videoURL) {
+         <span style="color:#75715e">// 后台任务：将视频存储到相簿
+</span><span style="color:#75715e"></span>         UIBackgroundTaskIdentifier lastBgTaskId <span style="color:#f92672">=</span> _bgTaskId;
+         _bgTaskId <span style="color:#f92672">=</span> UIBackgroundTaskInvalid;
+      
+         ALAssetsLibrary <span style="color:#f92672">*</span>assetsLibrary<span style="color:#f92672">=</span>[[ALAssetsLibrary alloc]init];
+         [assetsLibrary writeVideoAtPathToSavedPhotosAlbum:videoURL completionBlock:<span style="color:#f92672">^</span>(NSURL <span style="color:#f92672">*</span>assetURL, NSError <span style="color:#f92672">*</span>error) {   
+             <span style="color:#66d9ef">if</span> (error){
+                 NSLog(<span style="color:#e6db74">@&#34;保存视频到相簿过程中发生错误，错误信息：%@&#34;</span>,error.localizedDescription);
+                 <span style="color:#66d9ef">return</span>;
+             }
+             <span style="color:#75715e">// 删除原始路径文件
+</span><span style="color:#75715e"></span>             [[NSFileManager defaultManager] removeItemAtURL:videoURL error:nil];
+             <span style="color:#66d9ef">if</span> (lastBgTaskId <span style="color:#f92672">!=</span> UIBackgroundTaskInvalid){
+                 [[UIApplication sharedApplication] endBackgroundTask:lastBgTaskId];
+             }
+             NSLog(<span style="color:#e6db74">@&#34;成功保存视频到相簿.&#34;</span>);
+             <span style="color:#66d9ef">if</span> ([self.delegate respondsToSelector:<span style="color:#66d9ef">@selector</span>(videoRecordDidFinished:)]) {
+                 [self.delegate videoRecordDidFinished:assetURL];
+             }
+             [self dismissViewControllerAnimated:true completion:nil];
+         }];
+    }];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 录制后取消
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)cancelVideo {
+    _cancelButton.hidden <span style="color:#f92672">=</span> true;
+    _useVideoButton.hidden <span style="color:#f92672">=</span> true;
+    [_videoRecordDevice deviceStart];
+}
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> *  点按手势，点按时聚焦
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">-</span> (<span style="color:#66d9ef">IBAction</span>)tapScreen:(UITapGestureRecognizer <span style="color:#f92672">*</span>)tapGesture {
+    CGPoint point<span style="color:#f92672">=</span> [tapGesture locationInView:_containerView];
+    [self setFocusCursorWithPoint:point];
+    [_videoRecordDevice tapScreenPoint:point];
+}
+
+<span style="color:#f92672">~~~</span></code></pre></div>
+
+<h3 id="使用">使用</h3>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#f92672">~~~</span>objective<span style="color:#f92672">-</span>c
+<span style="color:#75715e">#import &#34;ViewController.h&#34;
+</span><span style="color:#75715e">#import &lt;AVFoundation/AVFoundation.h&gt;
+</span><span style="color:#75715e">#import &#34;VideoViewController.h&#34;
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">ViewController</span> ()
+<span style="color:#f92672">&lt;</span>VideoRecordDelegate<span style="color:#f92672">&gt;</span>
+{
+    <span style="color:#66d9ef">__weak</span> <span style="color:#66d9ef">IBOutlet</span> UIImageView <span style="color:#f92672">*</span>_imgView;
+    AVPlayer <span style="color:#f92672">*</span> _player;
+}
+<span style="color:#66d9ef">@end</span>
+<span style="color:#66d9ef">@implementation</span> <span style="color:#a6e22e">ViewController</span>
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">viewDidLoad</span> {
+    [super viewDidLoad];
+}
+- (<span style="color:#66d9ef">IBAction</span>)<span style="color:#a6e22e">toVideoRecord:</span>(<span style="color:#66d9ef">id</span>)sender {
+    LyraVideoViewController <span style="color:#f92672">*</span> videoVC <span style="color:#f92672">=</span> [[LyraVideoViewController alloc] init];
+    videoVC.delegate <span style="color:#f92672">=</span> self;
+    [self presentViewController:videoVC animated:true completion:nil];
+}
+- (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">videoRecordDidFinished:</span>(NSURL <span style="color:#f92672">*</span>)videoURL {
+    _player <span style="color:#f92672">=</span> [AVPlayer playerWithURL:videoURL];
+    AVPlayerLayer <span style="color:#f92672">*</span> playerLayer <span style="color:#f92672">=</span> [AVPlayerLayer playerLayerWithPlayer:_player];
+    playerLayer.frame <span style="color:#f92672">=</span> _imgView.bounds;
+    [_imgView.layer addSublayer:playerLayer];
+    [_player play];
+}
+<span style="color:#66d9ef">@end</span>
+<span style="color:#f92672">~~~</span></code></pre></div>
+		</div>
+		<footer class="post__footer">
+			
+<div class="post__tags tags clearfix">
+	<svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5 0 11V3C0 1.5.8.8.8.8S1.5 0 3 0h8c1.5 0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+	<ul class="tags__list">
+		<li class="tags__item">
+			<a class="tags__link btn" href="/tags/%E7%9B%B8%E6%9C%BA/" rel="tag">相机</a>
+		</li>
+	</ul>
+</div>
+		</footer>
+	</article>
+</main>
+
+<div class="authorbox clearfix">
+	<div class="authorbox__header">
+		<span class="authorbox__name">About sean</span>
+	</div>
+	<div class="authorbox__description">
+		a manager and coder in internet ltd.
+	</div>
+</div>
+
+<nav class="pager flex">
+	<div class="pager__item pager__item--prev">
+		<a class="pager__link" href="/ios/ios%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9B%B8%E6%9C%BA/" rel="prev">
+			<span class="pager__subtitle">«&thinsp;Previous</span>
+			<p class="pager__title">iOS:自定义相机</p>
+		</a>
+	</div>
+	<div class="pager__item pager__item--next">
+		<a class="pager__link" href="/ios/ios%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8/" rel="next">
+			<span class="pager__subtitle">Next&thinsp;»</span>
+			<p class="pager__title">iOS:持久化(数据存储)</p>
+		</a>
+	</div>
+</nav>
+
+
+
+			</div>
+			<aside class="sidebar"><div class="widget-search widget">
+	<form class="widget-search__form" role="search" method="get" action="https://google.com/search">
+		<label>
+			<input class="widget-search__field" type="search" placeholder="SEARCH..." value="" name="q" aria-label="SEARCH...">
+		</label>
+		<input class="widget-search__submit" type="submit" value="Search">
+		<input type="hidden" name="sitesearch" value="http://sean.vip/" />
+	</form>
+</div>
+<div class="widget-categories widget">
+	<h4 class="widget__title">Categories</h4>
+	<div class="widget__content">
+		<ul class="widget__list">
+			<li class="widget__item">
+				<a class="widget__link" href="/categories/ios/">iOS</a>
+			</li>
+		</ul>
+	</div>
+</div>
+<div class="widget-taglist widget">
+	<h4 class="widget__title">Tags</h4>
+	<div class="widget__content">
+		<a class="widget-taglist__link widget__link btn" href="/tags/block/" title="block">block</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/gcd/" title="GCD">GCD</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/objc/" title="objc">objc</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/runloop/" title="RunLoop">RunLoop</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/" title="二维码">二维码</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AD%98%E5%82%A8/" title="存储">存储</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E5%AE%89%E5%85%A8/" title="安全">安全</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" title="数据库">数据库</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E7%9B%B8%E6%9C%BA/" title="相机">相机</a>
+		<a class="widget-taglist__link widget__link btn" href="/tags/%E8%AE%A1%E6%97%B6%E5%99%A8/" title="计时器">计时器</a>
+	</div>
+</div>
+<div class="widget-social widget">
+	<h4 class="widget-social__title widget__title">Social</h4>
+	<div class="widget-social__content widget__content">
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="GitHub" rel="noopener noreferrer" href="https://github.com/sean-tech" target="_blank">
+				<svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0c-106.1 0-192 85.8-192 191.7 0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2 0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8 0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7 0 0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4 0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5 0 25.6-.2 46.3-.2 52.6 0 5.1 3.5 11.1 13.2 9.2 76.2-25.5 131.2-97.3 131.2-182 0-105.9-86-191.7-192-191.7z"/></svg>
+				<span>GitHub</span>
+			</a>
+		</div>
+		<div class="widget-social__item widget__item">
+			<a class="widget-social__link widget__link btn" title="Email" href="mailto:sean.vip.contact@foxmail.com">
+				<svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16-256-16h-16-384-16zm347 16-139 92.5-139-92.5zm-148 125.5 9 5.5 9-5.5 167-111.5v210h-352v-210z"/></svg>
+				<span>sean.vip.contact@foxmail.com</span>
+			</a>
+		</div>
+
+		
+	</div>
+</div>
+</aside>
+		</div>
+		<footer class="footer">
+	<div class="container footer__container flex">
+		
+<div class="footer__links">
+	<a class="footer__link" href="/about/">About Me</a>
+</div>
+		<div class="footer__copyright">
+			&copy; 2020 John Doe.
+			<span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span>
+		</div>
+	</div>
+</footer>
+	</div>
+<script async defer src="/js/menu.js"></script>
+<script src="/js/custom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async></script>
+</body>
+</html>
