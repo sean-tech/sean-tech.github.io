@@ -13,28 +13,28 @@
     
     <item>
       <title>iOS:密码学(非对称加密)</title>
-      <link>http://sean.vip/ios/ios%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/</link>
+      <link>http://sean.vip/post/ios%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/</link>
       <pubDate>Mon, 08 Feb 2016 16:20:26 +0800</pubDate>
       
-      <guid>http://sean.vip/ios/ios%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/</guid>
+      <guid>http://sean.vip/post/ios%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/</guid>
       <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;公钥加密，私钥解密；私钥签名，公钥验签&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>iOS:密码学(对称加密)</title>
-      <link>http://sean.vip/ios/ios%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/</link>
+      <link>http://sean.vip/post/ios%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/</link>
       <pubDate>Sat, 06 Feb 2016 16:20:26 +0800</pubDate>
       
-      <guid>http://sean.vip/ios/ios%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/</guid>
+      <guid>http://sean.vip/post/ios%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/</guid>
       <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;数据的加密方和解密方共用一个相同的密钥来进行对数据的加解密&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>iOS:密码学(哈希算法)</title>
-      <link>http://sean.vip/ios/ios%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95/</link>
+      <link>http://sean.vip/post/ios%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95/</link>
       <pubDate>Wed, 03 Feb 2016 14:18:58 +0800</pubDate>
       
-      <guid>http://sean.vip/ios/ios%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95/</guid>
+      <guid>http://sean.vip/post/ios%E5%93%88%E5%B8%8C%E7%AE%97%E6%B3%95/</guid>
       <description>&lt;p style=&#34;font-family:verdana;font-size:120%;color:gray&#34; ,=&#34;&#34; align=&#34;left&#34;&gt;iOS中的hash算法&lt;/p&gt;</description>
     </item>
     
